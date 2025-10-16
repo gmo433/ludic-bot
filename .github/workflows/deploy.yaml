@@ -18,6 +18,7 @@ jobs:
       with:
         go-version: 1.22.2
 
+    # Генерируем go.sum, если его нет
     - name: Generate go.sum
       run: |
         go mod tidy
@@ -27,6 +28,7 @@ jobs:
         git commit -m "Auto-generate go.sum" || echo "No changes to commit"
         git push || echo "Push skipped"
 
+    # Кешируем зависимости Go
     - name: Cache Go modules
       uses: actions/cache@v3
       with:
@@ -37,20 +39,24 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-go-
 
+    # Сборка Docker образа
     - name: Build Docker image
       run: |
         docker build -t ludic-bot:latest .
         docker tag ludic-bot:latest ${{ secrets.DOCKERHUB_USERNAME }}/ludic-bot:latest
 
+    # Логинимся в Docker Hub
     - name: Log in to Docker Hub
       uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+    # Пушим Docker образ
     - name: Push Docker image
       run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/ludic-bot:latest
 
+    # Настройка kubectl
     - name: Set up kubectl
       uses: azure/setup-kubectl@v3
       with:
@@ -61,12 +67,15 @@ jobs:
         echo "${{ secrets.KUBECONFIG }}" > kubeconfig
         export KUBECONFIG=$(pwd)/kubeconfig
 
+    # Деплой PostgreSQL
     - name: Deploy PostgreSQL
       run: kubectl apply -f k8s/postgres-deployment.yaml
 
+    # Деплой Secrets
     - name: Deploy Secrets
       run: kubectl apply -f k8s/ludic-bot-secrets.yaml
 
+    # Деплой Ludic Bot (5 Pods)
     - name: Deploy Ludic Bot
       run: |
         sed -i "s|<dockerhub-username>|${{ secrets.DOCKERHUB_USERNAME }}|g" k8s/ludic-bot-deployment.yaml
