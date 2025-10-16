@@ -21,8 +21,12 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
+        context: .
         push: true
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/ludic-bot:latest
+        build-args: |
+          API_FOOTBALL_KEY=${{ secrets.API_FOOTBALL_KEY }}
+          TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }}
 
     - name: Set kubeconfig from base64
       run: |
