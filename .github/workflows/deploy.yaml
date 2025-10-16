@@ -64,7 +64,7 @@ jobs:
 
     - name: Set KUBECONFIG
       run: |
-        echo "${{ secrets.KUBECONFIG }}" > kubeconfig
+        echo "${{ secrets.KUBECONFIG_B64 }}" > kubeconfig
         export KUBECONFIG=$(pwd)/kubeconfig
 
     # Деплой PostgreSQL
