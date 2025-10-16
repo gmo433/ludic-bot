@@ -1,0 +1,22 @@
+# Go
+/bin/
+/build/
+/dist/
+*.exe
+*.out
+*.test
+
+# Editor junk
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Env files
+.env
+*.env
+
+# System files
+.DS_Store
+Thumbs.db
