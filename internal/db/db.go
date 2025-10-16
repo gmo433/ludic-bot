@@ -12,5 +12,11 @@ func Connect() *sql.DB {
     if err != nil {
         log.Fatal(err)
     }
+
+    if err := db.Ping(); err != nil {
+        log.Fatal(err)
+    }
+
+    log.Println("Connected to database")
     return db
 }
