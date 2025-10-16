@@ -10,70 +10,66 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 1️⃣ Клонируем репозиторий
     - name: Checkout repo
       uses: actions/checkout@v4
 
-    # 2️⃣ Устанавливаем Go 1.22.2
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
         go-version: 1.22.2
 
-    # 3️⃣ Генерируем go.sum автоматически, если его нет
-    - name: Generate go.sum if missing
+    # ⚡ Генерируем go.sum перед кешем и сборкой
+    - name: Generate go.sum
       run: |
-        if [ ! -f go.sum ]; then
-          echo "go.sum not found, generating..."
-          go mod tidy
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git add go.sum
-          git commit -m "Auto-generate go.sum"
-          git push
-        else
-          echo "go.sum exists, skipping generation"
-        fi
+        go mod tidy
+        git config user.name "github-actions"
+        git config user.email "actions@github.com"
+        git add go.sum
+        git commit -m "Auto-generate go.sum" || echo "No changes to commit"
+        git push || echo "Push skipped"
 
-    # 4️⃣ Собираем Docker образ
+    # ⚡ Опциональный шаг кеша зависимостей
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/go/pkg/mod
+          ~/go/cache
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+
+    # Сборка Docker
     - name: Build Docker image
       run: |
         docker build -t ludic-bot:latest .
         docker tag ludic-bot:latest ${{ secrets.DOCKERHUB_USERNAME }}/ludic-bot:latest
 
-    # 5️⃣ Логинимся в Docker Hub
     - name: Log in to Docker Hub
       uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    # 6️⃣ Пушим Docker образ
     - name: Push Docker image
-      run: |
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/ludic-bot:latest
+      run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/ludic-bot:latest
 
-    # 7️⃣ Устанавливаем kubectl
     - name: Set up kubectl
       uses: azure/setup-kubectl@v3
       with:
         version: 'latest'
 
-    # 8️⃣ Подключаемся к кластеру через KUBECONFIG
     - name: Set KUBECONFIG
       run: |
         echo "${{ secrets.KUBECONFIG }}" > kubeconfig
         export KUBECONFIG=$(pwd)/kubeconfig
 
-    # 9️⃣ Деплой PostgreSQL
     - name: Deploy PostgreSQL
       run: kubectl apply -f k8s/postgres-deployment.yaml
 
-    # 🔟 Деплой Secrets
     - name: Deploy Secrets
       run: kubectl apply -f k8s/ludic-bot-secrets.yaml
 
-    # 1️⃣1️⃣ Деплой Ludic Bot (5 Pods)
     - name: Deploy Ludic Bot
       run: |
         sed -i "s|<dockerhub-username>|${{ secrets.DOCKERHUB_USERNAME }}|g" k8s/ludic-bot-deployment.yaml
