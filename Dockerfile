@@ -1,11 +1,26 @@
-FROM golang:1.20-alpine AS build
+# Stage 1: Build
+FROM golang:1.22.2-alpine AS build
 WORKDIR /app
+
+# Копируем go.mod и go.sum
 COPY go.mod go.sum ./
 RUN go mod download
-COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o /usr/local/bin/ludic-bot ./cmd/bot
 
+# Копируем весь код
+COPY . .
+
+# Собираем бинарь
+RUN go build -o ludic-bot ./cmd/bot
+
+# Stage 2: Runtime
 FROM alpine:3.18
-COPY --from=build /usr/local/bin/ludic-bot /usr/local/bin/ludic-bot
-ENV TZ=UTC
-CMD ["/usr/local/bin/ludic-bot"]
+WORKDIR /app
+
+# Копируем бинарь из сборочного этапа
+COPY --from=build /app/ludic-bot .
+
+ENV TELEGRAM_TOKEN=""
+ENV API_FOOTBALL_KEY=""
+ENV DATABASE_URL=""
+
+CMD ["./ludic-bot"]
