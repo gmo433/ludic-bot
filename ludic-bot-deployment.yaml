@@ -13,9 +13,10 @@ spec:
         app: ludic-bot
     spec:
       containers:
-      - name: ludic-bot
-        image: <dockerhub-username>/ludic-bot:latest
-        envFrom:
-        - secretRef:
-            name: ludic-bot-secrets
-        imagePullPolicy: Always
+        - name: ludic-bot
+          image: <dockerhub-username>/ludic-bot:latest
+          envFrom:
+            - secretRef:
+                name: ludic-bot-secrets
+          ports:
+            - containerPort: 8080
