@@ -34,14 +34,12 @@ deploy:
       run: |
         echo "Starting K8s deployment..."
 
-        # Список переменных для подстановки в secret.yaml
-        SECRET_VARS='$TELEGRAM_BOT_TOKEN $API_FOOTBALL_KEY'
-        
         # 1. Подставляем секреты в secret.yaml
+        # (envsubst < secret.yaml работает корректно, так как переменные TELEGRAM_TOKEN и API_FOOTBALL_KEY явно не указаны в YAML)
         envsubst < kubernetes/secret.yaml | kubectl apply -f -
         
         # 2. Подставляем путь к образу в deployment.yaml и применяем его
-        # КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Явно указываем envsubst заменить $IMAGE_PATH
+        # КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Явно указываем envsubst заменить $IMAGE_PATH.
         envsubst '$IMAGE_PATH' < kubernetes/deployment.yaml | kubectl apply -f -
         
         # Ожидаем завершения деплоя
