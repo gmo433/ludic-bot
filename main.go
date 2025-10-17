@@ -121,9 +121,10 @@ func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
 	}
 
 	today := time.Now().Format("2006-01-02")
-	// Используем ПРЯМОЙ URL API-FOOTBALL: v3.football.api-sport.io
-	// Используем league=39 (АПЛ) в качестве примера. Если не работает, попробуйте другую лигу или удалите параметры.
-	apiURL := fmt.Sprintf("https://v3.football.api-sport.io/fixtures?date=%s&league=39&season=2024", today) 
+	
+	// ИСПРАВЛЕНИЕ 1: Используем ПРЯМОЙ URL API-FOOTBALL
+	// УДАЛЕНЫ league=39 и season=2024, чтобы избежать проблем с бесплатным лимитом.
+	apiURL := fmt.Sprintf("https://v3.football.api-sport.io/fixtures?date=%s", today) 
 	
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
@@ -131,7 +132,7 @@ func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
 		return
 	}
 	
-	// !!! ИСПРАВЛЕНИЕ: Используем заголовок X-Api-Key вместо X-RapidAPI-Key !!!
+	// ИСПРАВЛЕНИЕ 2: Используем заголовок X-Api-Key
 	req.Header.Add("X-Api-Key", apiKey) 
 	
 	client := http.Client{Timeout: 10 * time.Second}
@@ -151,7 +152,7 @@ func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
 		if resp.StatusCode != http.StatusOK {
 			log.Printf("API returned status %d. Body: %s", resp.StatusCode, string(body))
 			
-			// Код 451 теперь должен указывать на проблемы с лимитом/подпиской.
+			// Ошибка 451 теперь должна указывать на проблемы с лимитом/подпиской.
 			msgText = fmt.Sprintf("Ошибка API: статус %d. Проверьте подписку или лимиты API-Football.", resp.StatusCode)
 			
 		} else if err := json.Unmarshal(body, &apiResponse); err != nil {
