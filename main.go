@@ -109,7 +109,7 @@ func createMainMenu() tgbotapi.InlineKeyboardMarkup {
 }
 
 // -----------------------------------------------------------------------------------
-// ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ МАТЧЕЙ (Ультра-упрощенный запрос)
+// ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ МАТЧЕЙ (Ультра-упрощенный запрос с правильным доменом)
 // -----------------------------------------------------------------------------------
 
 func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
@@ -120,8 +120,8 @@ func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
 		return
 	}
 
-	// Ультра-упрощенный запрос для обхода лимитов
-	apiURL := "https://v3.football.api-sport.io/fixtures" 
+	// ИСПРАВЛЕНИЕ: Добавлен 's' в домен. Это правильный API. Параметры убраны для совместимости с Free Tier.
+	apiURL := "https://v3.football.api-sports.io/fixtures" 
 	
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
@@ -149,7 +149,7 @@ func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
 		if resp.StatusCode != http.StatusOK {
 			log.Printf("API returned status %d. Body: %s", resp.StatusCode, string(body))
 			
-			// Ошибка 451 теперь указывает на проблемы с лимитом/подпиской.
+			// Если мы видим 451/403, это 100% лимит/подписка.
 			msgText = fmt.Sprintf("Ошибка API: статус %d. Проверьте подписку или лимиты API-Football.", resp.StatusCode)
 			
 		} else if err := json.Unmarshal(body, &apiResponse); err != nil {
@@ -203,4 +203,4 @@ func filterAndFormatMatches(matches []MatchDetail) string {
 		return "Нет матчей, начинающихся в ближайшие 2 часа."
 	}
 	return result
-} // <-- ЭТО САМАЯ ПОСЛЕДНЯЯ СКОБКА (Ожидалась на строке 181)
+}
