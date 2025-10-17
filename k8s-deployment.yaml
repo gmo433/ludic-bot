@@ -14,7 +14,7 @@ spec:
       labels:
         app: telegram-ludic-bot
     spec:
-      # --- ОБХОД DNS ---
+      # --- ОБХОД DNS (Устраняет ошибку "Could not resolve host") ---
       dnsPolicy: "None"
       dnsConfig:
         nameservers:
@@ -23,13 +23,12 @@ spec:
           - default.svc.cluster.local
           - svc.cluster.local
           - cluster.local
-      # ------------------
+      # ------------------------------------------------------------------
       
       containers:
       - name: telegram-ludic-bot
-        # !!! ВАЖНО: ЗАМЕНИТЕ ЭТУ СТРОКУ НА ВАШ РЕАЛЬНЫЙ ОБРАЗ Docker
-        # Пример: gmo433/ludic-bot:latest
-        image: <ВАШ_DOCKER_IMAGE_ЗДЕСЬ>  
+        # ИСПРАВЛЕНИЕ: ТОЧНОЕ ИМЯ ВАШЕГО ОБРАЗА С DOCKER HUB
+        image: roman3327/ludic-bot:latest  
         ports:
         - containerPort: 8080
         
@@ -41,7 +40,7 @@ spec:
               name: telegram-bot-secret
               key: token
               
-        # 2. Секрет для API-Sport.ru
+        # 2. Секрет для API-Sport.ru (Устраняет ошибку 451)
         - name: API_SPORT_KEY
           valueFrom:
             secretKeyRef:
