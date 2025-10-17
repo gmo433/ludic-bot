@@ -8,8 +8,8 @@ on:
 
 env:
   IMAGE_NAME: ludic-bot
-  # Путь к Registry (docker.io/gmo433/ludic-bot)
-  REGISTRY: docker.io/${{ secrets.DOCKER_USERNAME }}
+  # Registry: docker.io/gmo433/ludic-bot
+  REGISTRY: docker.io/${{ secrets.DOCKERHUB_USERNAME }} # ИСПОЛЬЗУЕМ DOCKERHUB_USERNAME
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
@@ -27,7 +27,8 @@ jobs:
     - name: 3. Login to Docker Hub
       uses: docker/login-action@v3
       with:
-        username: ${{ secrets.DOCKER_USERNAME }}
+        # !!! ИСПОЛЬЗУЕМ ВАШЕ ИМЯ СЕКРЕТА !!!
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
     - name: 4. Build and push Docker image
@@ -42,7 +43,7 @@ jobs:
       uses: azure/k8s-set-context@v4
       with:
         method: kubeconfig
-        # Используем ваше имя секрета
+        # !!! ИСПОЛЬЗУЕМ ВАШЕ ИМЯ СЕКРЕТА !!!
         kubeconfig: ${{ secrets.KUBECONFIG_B64 }}
         
     - name: 6. Apply Kubernetes Secret for Telegram Token
