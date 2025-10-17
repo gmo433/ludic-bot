@@ -1,31 +1,19 @@
-# Этап 1: Сборка
+# ----------------------------------------------------
+# Этап 1: Builder - Сборка Go-приложения
+# ----------------------------------------------------
 FROM golang:1.22-alpine AS builder
 
+# 1. Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем go.mod и go.sum, чтобы кэшировать зависимости
+# 2. КОПИРУЕМ ФАЙЛЫ МОДУЛЯ: go.mod и go.sum
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Копируем исходный код
+# 3. КОПИРУЕМ ВЕСЬ ОСТАЛЬНОЙ ИСХОДНЫЙ КОД (main.go, api/, models/)
 COPY . .
 
-# Компилируем статический бинарник
+# 4. Компилируем статический бинарник (Здесь происходит ошибка!)
 RUN CGO_ENABLED=0 go build -a -tags netgo -ldflags "-s -w" -o football-bot .
 
-# Этап 2: Итоговый образ (минимальный)
-FROM alpine:latest
-
-# Устанавливаем часовой пояс
-RUN apk --no-cache add tzdata
-
-WORKDIR /root/
-
-# Копируем скомпилированный бинарник
-COPY --from=builder /app/football-bot .
-
-# Копируем информацию о часовых поясах (необходимо для time.Local в Go)
-COPY --from=builder /usr/share/zoneinfo /usr/share/zoneinfo
-
-# Команда для запуска
-CMD ["./football-bot"]
+# ... (Остальная часть Dockerfile)
