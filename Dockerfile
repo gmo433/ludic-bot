@@ -1,10 +1,9 @@
-# --- STAGE 1: BUILD (Сборка) ---
-# Используем более полный образ для сборки, чтобы установить зависимости C/C++
-FROM python:3.11-slim AS builder
+# --- STAGE 1: BUILD (Сборка) ---# --- STAGE 1: BUILDER (Сборка) ---
+# Используем полный образ Python для установки системных зависимостей и компиляции
+FROM python:3.11 as builder
 
-# Устанавливаем системные зависимости, необходимые для компиляции Python-пакетов
-# (Например, для psycopg2, cryptography, lxml)
-# build-essential, gcc, libpq-dev
+# Устанавливаем системные пакеты, необходимые для компиляции 
+# (например, для psycopg2, cryptography, lxml и других, требующих C-компилятор)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
@@ -12,40 +11,33 @@ RUN apt-get update && \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
+# Создаем рабочий каталог
 WORKDIR /app
 
-# Копируем только requirements для использования кеша Docker
+# Копируем файл зависимостей
 COPY requirements.txt .
 
-# Установка Python-зависимостей
+# Установка Python-зависимостей (теперь она должна работать)
 RUN pip install --no-cache-dir -r requirements.txt
 
 # --- STAGE 2: FINAL (Финальный образ) ---
-# Используем минимальный образ, чтобы сделать его легким и безопасным
+# Используем меньший, "slim" образ для продакшена (для уменьшения размера)
 FROM python:3.11-slim
 
-# Устанавливаем только библиотеки времени выполнения (Runtime libraries)
-# libpq5 нужна, если вы используете PostgreSQL
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    libpq5 \
-    && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /app
-
-# Копируем установленные зависимости из 'builder'
+# Копируем установленные зависимости из "builder"
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 
-# Копируем код приложения (папка app/ должна находиться в корне репозитория)
+# Создаем рабочий каталог
+WORKDIR /app
+
+# Копируем остальной код
 COPY app /app/
+COPY main.py /app/main.py
 
-# Настройка переменных окружения
+# Устанавливаем переменные окружения
 ENV PYTHONUNBUFFERED 1
-ENV UVICORN_PORT 8080
+ENV PORT 8080
 
-EXPOSE 8080
-
-# Команда запуска FastAPI/Uvicorn
-# 'main' - это имя вашего файла (main.py)
-# 'app' - это имя экземпляра FastAPI в main.py (app = FastAPI(...))
+# Команда для запуска приложения Uvicorn/FastAPI
+# Убедитесь, что ваш главный скрипт - main.py, а приложение - app
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
