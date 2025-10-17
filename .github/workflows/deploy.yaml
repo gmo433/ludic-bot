@@ -38,14 +38,13 @@ jobs:
         file: ./Dockerfile
         
     - name: 5. Decode and Setup Kubeconfig
-      # Декодируем Kubeconfig и устанавливаем KUBECONFIG
       run: |
         echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > /tmp/kubeconfig.yaml
         echo "KUBECONFIG=/tmp/kubeconfig.yaml" >> $GITHUB_ENV
       shell: bash
 
     - name: 6. Apply Kubernetes Secret for Telegram Token
-      # Создаем Secret
+      # !!! ГАРАНТИРОВАННОЕ СОЗДАНИЕ СЕКРЕТА С КЛЮЧОМ 'token' !!!
       run: |
         kubectl create secret generic telegram-bot-secret \
           --from-literal=token="${{ secrets.TELEGRAM_BOT_TOKEN }}" \
@@ -53,13 +52,10 @@ jobs:
       shell: bash
           
     - name: 7. Deploy to Kubernetes (Create/Update Deployment)
-      # !!! ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ ДЛЯ СОЗДАНИЯ/ОБНОВЛЕНИЯ DEPLOYMENT !!!
+      # Используем sed для замены и kubectl apply для создания/обновления
       run: |
-        # ВНИМАНИЕ: Замените <ВАШ_DOCKER_USERNAME> на ваш логин из k8s-deployment.yaml
-        # 1. Используем sed для замены статичного тега на динамический SHA-тег
+        # ВНИМАНИЕ: Замените <ВАШ_DOCKER_USERNAME> на ваш логин Docker Hub!
         sed -i "s|docker.io/<ВАШ_DOCKER_USERNAME>/ludic-bot:latest|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}|g" k8s-deployment.yaml
         
-        # 2. Применяем манифест. Команда 'kubectl apply -f' создаст Deployment,
-        # если его нет, или обновит, если он уже есть.
         kubectl apply -f k8s-deployment.yaml
       shell: bash
