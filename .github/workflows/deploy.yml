@@ -1,27 +1,26 @@
+# .github/workflows/deploy.yml
 name: CI/CD to Kubernetes
 
 on:
   push:
-    # Запускать пайплайн при пуше в ветку main (или master, если вы ее используете)
     branches:
       - main
   workflow_dispatch:
-    # Позволяет запускать вручную из интерфейса GitHub
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     
-    # Объявление переменных, чтобы не повторять их в скриптах
     env:
+      # Имя образа (используется для пуша и деплоя)
       DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/ludic-bot
-      TAG: ${{ github.sha }}  # Используем SHA коммита как уникальный тег
+      TAG: ${{ github.sha }}
       K8S_DEPLOYMENT_NAME: ludic-bot-deployment
 
     steps:
     - name: 1. Checkout Code
       uses: actions/checkout@v4
-
+      
     # =======================================================
     # СЕКЦИЯ DOCKER (Сборка и Пуш)
     # =======================================================
@@ -42,14 +41,12 @@ jobs:
         tags: |
           ${{ env.DOCKER_IMAGE }}:latest
           ${{ env.DOCKER_IMAGE }}:${{ env.TAG }}
-        # Используем Dockerfile, который мы создали ранее
         file: ./Dockerfile
         
     # =======================================================
     # СЕКЦИЯ KUBERNETES (Деплой)
     # =======================================================
     - name: 5. Set up Kubeconfig (Base64 Decode)
-      # Декодируем секрет KUBECONFIG_B64 и сохраняем его в файл
       run: |
         echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > $HOME/.kube/config
         
@@ -57,15 +54,12 @@ jobs:
       uses: azure/setup-kubectl@v3
       
     - name: 7. Deploy to K8s
-      # Используем kubectl для применения манифеста.
-      # Мы также обновим образ, чтобы гарантировать, что K8s подтянет новую версию.
       run: |
-        # Применяем манифест (убедитесь, что deployment.yaml есть в корне проекта)
+        # Применяем манифест. 
         kubectl apply -f deployment.yaml
 
-        # Обязательный шаг: принудительное обновление образа в Deployment
-        # Это гарантирует, что K8s загрузит новый тег :latest или :<sha>
+        # Обновляем образ в Deployment до нового уникального тега (SHA)
         kubectl set image deployment/${{ env.K8S_DEPLOYMENT_NAME }} ludic-bot=${{ env.DOCKER_IMAGE }}:${{ env.TAG }}
         
-        # Проверяем статус развертывания
+        # Ожидаем завершения развертывания
         kubectl rollout status deployment/${{ env.K8S_DEPLOYMENT_NAME }}
