@@ -36,34 +36,30 @@ jobs:
         push: true
         tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
         file: ./Dockerfile
-        no-cache: true 
-    
-    # =========================================================================
-    # !!! НОВЫЙ ИСПРАВЛЕННЫЙ БЛОК ДЛЯ KUBECONFIG И DEPLOY !!!
-    # =========================================================================
-
+        
     - name: 5. Decode and Setup Kubeconfig
-      id: kubeconfig
-      # Декодируем Base64 строку и записываем её в файл,
-      # затем устанавливаем KUBECONFIG для всех последующих команд.
+      # Декодируем Kubeconfig и устанавливаем KUBECONFIG
       run: |
-        echo "Starting Kubeconfig setup..."
         echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > /tmp/kubeconfig.yaml
         echo "KUBECONFIG=/tmp/kubeconfig.yaml" >> $GITHUB_ENV
-        echo "Kubeconfig successfully decoded and set."
       shell: bash
 
     - name: 6. Apply Kubernetes Secret for Telegram Token
-      # Теперь kubectl использует KUBECONFIG=/tmp/kubeconfig.yaml
+      # Создаем Secret
       run: |
         kubectl create secret generic telegram-bot-secret \
           --from-literal=token="${{ secrets.TELEGRAM_BOT_TOKEN }}" \
           --dry-run=client -o yaml | kubectl apply -f -
       shell: bash
           
-    - name: 7. Deploy to Kubernetes
-      # Обновляем Deployment и применяем манифест
+    - name: 7. Deploy to Kubernetes (Create/Update Deployment)
+      # !!! ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ ДЛЯ СОЗДАНИЯ/ОБНОВЛЕНИЯ DEPLOYMENT !!!
       run: |
-        kubectl set image deployment/telegram-ludic-bot hello-bot=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+        # ВНИМАНИЕ: Замените <ВАШ_DOCKER_USERNAME> на ваш логин из k8s-deployment.yaml
+        # 1. Используем sed для замены статичного тега на динамический SHA-тег
+        sed -i "s|docker.io/<ВАШ_DOCKER_USERNAME>/ludic-bot:latest|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}|g" k8s-deployment.yaml
+        
+        # 2. Применяем манифест. Команда 'kubectl apply -f' создаст Deployment,
+        # если его нет, или обновит, если он уже есть.
         kubectl apply -f k8s-deployment.yaml
       shell: bash
