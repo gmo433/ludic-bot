@@ -44,18 +44,24 @@ jobs:
       shell: bash
 
     - name: 6. Apply Kubernetes Secret for Telegram Token
-      # !!! ГАРАНТИРОВАННОЕ СОЗДАНИЕ СЕКРЕТА С КЛЮЧОМ 'token' !!!
       run: |
         kubectl create secret generic telegram-bot-secret \
           --from-literal=token="${{ secrets.TELEGRAM_BOT_TOKEN }}" \
           --dry-run=client -o yaml | kubectl apply -f -
       shell: bash
+
+    - name: 6.1. Apply Kubernetes Secret for Football API Key
+      # !!! НОВЫЙ ШАГ ДЛЯ КЛЮЧА API FOOTBALL !!!
+      run: |
+        kubectl create secret generic football-api-secret \
+          --from-literal=key="${{ secrets.FOOTBALL_API_KEY }}" \
+          --dry-run=client -o yaml | kubectl apply -f -
+      shell: bash
           
     - name: 7. Deploy to Kubernetes (Create/Update Deployment)
-      # Используем sed для замены и kubectl apply для создания/обновления
       run: |
-        # ВНИМАНИЕ: Замените <ВАШ_DOCKER_USERNAME> на ваш логин Docker Hub!
-        sed -i "s|docker.io/<ВАШ_DOCKER_USERNAME>/ludic-bot:latest|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}|g" k8s-deployment.yaml
+        # ВАШ ЛОГИН ROMAN3327
+        sed -i "s|docker.io/roman3327/ludic-bot:latest|${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}|g" k8s-deployment.yaml
         
         kubectl apply -f k8s-deployment.yaml
       shell: bash
