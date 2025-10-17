@@ -1,0 +1,38 @@
+deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      # Установим envsubst
+      - name: Install Gettext (for envsubst)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gettext-base
+
+      - name: Set up Kubeconfig
+        run: |
+          # Декодируем KUBECONFIG
+          echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > /tmp/kubeconfig
+          echo "KUBECONFIG=/tmp/kubeconfig" >> $GITHUB_ENV
+          
+      - name: Install Kubectl
+        uses: azure/setup-kubectl@v3
+
+      # БЕЗОПАСНЫЙ ДЕПЛОЙ СЕКРЕТОВ
+      - name: Apply Kubernetes Manifests
+        env:
+          # Передаем реальные секреты в переменные окружения для envsubst
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+        run: |
+          # 1. Подставляем реальные секреты в secret.yaml и применяем (через конвейер)
+          envsubst < kubernetes/secret.yaml | kubectl apply -f -
+          
+          # 2. Деплоим Deployment (без изменений)
+          kubectl apply -f kubernetes/deployment.yaml
+          
+          # Ожидаем завершения деплоя
+          kubectl rollout status deployment/football-bot-deployment --timeout=5m
