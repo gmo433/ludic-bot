@@ -1,115 +1,7 @@
-package main
-
-import (
-	"log"
-	"os"
-	"fmt"
-	"time"
-	"net/http"
-	"io/ioutil"
-	"encoding/json"
-
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-)
-
-// Структуры для декодирования ответа API-FOOTBALL
-type Team struct {
-	Name string `json:"name"`
-}
-
-type Teams struct {
-	Home Team `json:"home"`
-	Away Team `json:"away"`
-}
-
-type Fixture struct {
-	Date string `json:"date"` // Дата в формате ISO 8601
-}
-
-type MatchDetail struct {
-	Fixture Fixture `json:"fixture"`
-	Teams   Teams   `json:"teams"`
-}
-
-type APIResponse struct {
-	Response []MatchDetail `json:"response"`
-}
-
-func main() {
-	botToken := os.Getenv("TELEGRAM_BOT_TOKEN")
-	if botToken == "" {
-		log.Panic("TELEGRAM_BOT_TOKEN environment variable not set")
-	}
-
-	bot, err := tgbotapi.NewBotAPI(botToken)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	bot.Debug = true
-	log.Printf("Authorized on account %s", bot.Self.UserName)
-
-	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
-
-	updates := bot.GetUpdatesChan(u)
-
-	for update := range updates {
-		if update.Message != nil {
-			handleMessage(bot, update.Message)
-		} else if update.CallbackQuery != nil {
-			handleCallbackQuery(bot, update.CallbackQuery)
-		}
-	}
-}
-
-func handleMessage(bot *tgbotapi.BotAPI, message *tgbotapi.Message) {
-	if !message.IsCommand() {
-		return
-	}
-
-	msg := tgbotapi.NewMessage(message.Chat.ID, "")
-
-	switch message.Command() {
-	case "start":
-		msg.Text = "Добро пожаловать! Выберите действие:"
-		msg.ReplyMarkup = createMainMenu()
-	default:
-		msg.Text = "Я не понимаю эту команду."
-	}
-
-	if _, err := bot.Send(msg); err != nil {
-		log.Println(err)
-	}
-}
-
-func handleCallbackQuery(bot *tgbotapi.BotAPI, callbackQuery *tgbotapi.CallbackQuery) {
-	callback := tgbotapi.NewCallback(callbackQuery.ID, "Обновляю данные...")
-
-	if _, err := bot.Request(callback); err != nil {
-		log.Println(err)
-	}
-
-	if callbackQuery.Data == "nearest_matches" {
-		sendMatches(bot, callbackQuery.Message.Chat.ID)
-	}
-}
-
-// Создает Inline-кнопки
-func createMainMenu() tgbotapi.InlineKeyboardMarkup {
-	keyboard := tgbotapi.NewInlineKeyboardMarkup(
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("⚽ Ближайшие матчи (2ч)", "nearest_matches"),
-		),
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonURL("Сайт API Football", "https://rapidapi.com/api-sports/api/api-football/"),
-		),
-	)
-	return keyboard
-}
+// ... (остальной код main.go) ...
 
 // -----------------------------------------------------------------------------------
-// ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ МАТЧЕЙ (ПРИЧИНА ПРЕДЫДУЩЕЙ ОШИБКИ)
+// ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ МАТЧЕЙ (ИСПРАВЛЕНА ДЛЯ ПРЯМОГО API-FOOTBALL)
 // -----------------------------------------------------------------------------------
 
 func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
@@ -121,8 +13,9 @@ func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
 	}
 
 	today := time.Now().Format("2006-01-02")
-	// Пример: запрашиваем фикстуры (матчи) на сегодня для ЛИГИ 39 (Английская Премьер-лига)
-	apiURL := fmt.Sprintf("https://api-football-v1.p.rapidapi.com/v3/fixtures?date=%s&league=39&season=2024", today) 
+	// Используем ПРЯМОЙ URL API-FOOTBALL: v3.football.api-sport.io
+	// Используем league=39 (АПЛ) в качестве примера. Если не работает, попробуйте другую лигу или удалите параметры.
+	apiURL := fmt.Sprintf("https://v3.football.api-sport.io/fixtures?date=%s&league=39&season=2024", today) 
 	
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
@@ -130,8 +23,10 @@ func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
 		return
 	}
 	
-	req.Header.Add("X-RapidAPI-Key", apiKey)
-	req.Header.Add("X-RapidAPI-Host", "api-football-v1.p.rapidapi.com")
+	// !!! ИСПРАВЛЕНИЕ: Используем заголовок X-Api-Key вместо X-RapidAPI-Key !!!
+	req.Header.Add("X-Api-Key", apiKey) 
+	
+	// Заголовок X-RapidAPI-Host БОЛЬШЕ НЕ НУЖЕН
 	
 	client := http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
@@ -148,8 +43,12 @@ func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
 		var apiResponse APIResponse
 		
 		if resp.StatusCode != http.StatusOK {
+			// Логируем тело ответа, чтобы увидеть точную причину ошибки
 			log.Printf("API returned status %d. Body: %s", resp.StatusCode, string(body))
-			msgText = fmt.Sprintf("Ошибка API: статус %d. Проверьте ключ.", resp.StatusCode)
+			
+			// Код 451 мог быть вызван неправильными заголовками, но теперь это может быть лимит/подписка.
+			msgText = fmt.Sprintf("Ошибка API: статус %d. Проверьте подписку или лимиты API-Football.", resp.StatusCode)
+			
 		} else if err := json.Unmarshal(body, &apiResponse); err != nil {
 			log.Printf("Error decoding JSON: %v. Body: %s", err, string(body))
 			msgText = "Ошибка обработки данных матчей."
@@ -163,42 +62,4 @@ func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
 	if _, err := bot.Send(msg); err != nil {
 		log.Println(err)
 	}
-}
-
-// Фильтрует матчи, начинающиеся в ближайшие 2 часа
-func filterAndFormatMatches(matches []MatchDetail) string {
-	now := time.Now().UTC()
-	twoHoursLater := now.Add(2 * time.Hour)
-	
-	result := "⚽️ *Ближайшие матчи (в течение 2 часов):*\n\n"
-	found := false
-
-	// Шаблон времени API-Football: "2006-01-02T15:04:05-07:00"
-	const apiTimeLayout = "2006-01-02T15:04:05-07:00" 
-
-	for _, match := range matches {
-		matchTime, err := time.Parse(apiTimeLayout, match.Fixture.Date)
-
-		if err != nil {
-			log.Printf("Error parsing time: %v for date: %s", err, match.Fixture.Date)
-			continue
-		}
-		
-		// Фильтруем матчи в диапазоне времени (API возвращает UTC, сравниваем с UTC)
-		if matchTime.After(now) && matchTime.Before(twoHoursLater) {
-			// Форматируем время для пользователя (например, в московское время)
-			localTime := matchTime.In(time.FixedZone("MSK", 3*60*60)) 
-
-			result += fmt.Sprintf("🕔 %s: **%s** vs **%s**\n", 
-				localTime.Format("15:04 MSK"), 
-				match.Teams.Home.Name, 
-				match.Teams.Away.Name)
-			found = true
-		}
-	}
-
-	if !found {
-		return "Нет матчей, начинающихся в ближайшие 2 часа."
-	}
-	return result
 }
