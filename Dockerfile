@@ -2,13 +2,14 @@
 # Используем более полный образ для сборки, чтобы установить зависимости C/C++
 FROM python:3.11-slim AS builder
 
-# Устанавливаем системные зависимости, необходимые для компиляции Python-пакетов (gcc, python3-dev)
+# Устанавливаем системные зависимости, необходимые для компиляции Python-пакетов
+# (Например, для psycopg2, cryptography, lxml)
+# build-essential, gcc, libpq-dev
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
     gcc \
-    # Добавьте сюда любые другие библиотеки, если они нужны для ваших пакетов
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -23,8 +24,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Используем минимальный образ, чтобы сделать его легким и безопасным
 FROM python:3.11-slim
 
-# Устанавливаем только библиотеки времени выполнения, если они необходимы
-# Например, libpq-dev (для PostgreSQL) нужен и здесь в виде libpq5
+# Устанавливаем только библиотеки времени выполнения (Runtime libraries)
+# libpq5 нужна, если вы используете PostgreSQL
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     libpq5 \
@@ -35,8 +36,7 @@ WORKDIR /app
 # Копируем установленные зависимости из 'builder'
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 
-# Копируем код приложения
-# Ваше приложение находится в папке app/, поэтому копируем его
+# Копируем код приложения (папка app/ должна находиться в корне репозитория)
 COPY app /app/
 
 # Настройка переменных окружения
