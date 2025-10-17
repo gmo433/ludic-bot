@@ -14,7 +14,7 @@ spec:
       labels:
         app: telegram-ludic-bot
     spec:
-      # --- ОБХОД DNS (Для исправления ошибок Could not resolve host) ---
+      # --- ОБХОД DNS ---
       dnsPolicy: "None"
       dnsConfig:
         nameservers:
@@ -23,12 +23,13 @@ spec:
           - default.svc.cluster.local
           - svc.cluster.local
           - cluster.local
-      # ------------------------------------------------------------------
+      # ------------------
       
       containers:
       - name: telegram-ludic-bot
         # !!! ВАЖНО: ЗАМЕНИТЕ ЭТУ СТРОКУ НА ВАШ РЕАЛЬНЫЙ ОБРАЗ Docker
-        image: gmo433/ludic-bot:latest  
+        # Пример: gmo433/ludic-bot:latest
+        image: <ВАШ_DOCKER_IMAGE_ЗДЕСЬ>  
         ports:
         - containerPort: 8080
         
