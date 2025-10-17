@@ -16,8 +16,9 @@ spec:
     spec:
       containers:
       - name: football-bot
-        # Образ будет взят из Docker Hub
-        image: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/ludic-bot:latest
+        # ИСПРАВЛЕНО: Используем заглушку $IMAGE_PATH.
+        # Это будет заменено на 'docker.io/USERNAME/ludic-bot:latest' с помощью envsubst.
+        image: $IMAGE_PATH 
         
         resources:
           limits:
@@ -27,7 +28,7 @@ spec:
             memory: "32Mi"
             cpu: "50m"
         
-        # Передача секретов из K8s Secret
+        # Передача секретов из K8s Secret (имена переменных верны)
         env:
         - name: TELEGRAM_BOT_TOKEN
           valueFrom:
@@ -42,6 +43,6 @@ spec:
         
         livenessProbe:
           exec:
-            command: ["/bin/true"] 
+            command: ["/bin/true"] # Простая проверка, что процесс жив
           initialDelaySeconds: 10
           periodSeconds: 30
