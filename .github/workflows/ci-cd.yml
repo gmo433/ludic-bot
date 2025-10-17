@@ -3,6 +3,11 @@ deploy:
   runs-on: ubuntu-latest
   needs: build-and-push # Запускается только после успешного создания и пуша образа
   
+  # КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Определяем env-переменные для всего Job
+  env:
+    REGISTRY: docker.io
+    IMAGE_NAME: ludic-bot
+
   steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -25,21 +30,20 @@ deploy:
     # 3. Применение манифестов с безопасной подстановкой секретов и имени образа
     - name: Apply Kubernetes Manifests
       env:
-        # Передаем реальные секреты в переменные окружения для envsubst
+        # Теперь эти переменные будут заполнены, т.к. определены выше
         TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
         API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
         
-        # КРИТИЧЕСКИ ВАЖНО: Определяем переменную IMAGE_PATH для подстановки в deployment.yaml
+        # IMAGE_PATH теперь получит полные значения
         IMAGE_PATH: ${{ env.REGISTRY }}/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
       run: |
         echo "Starting K8s deployment..."
 
         # 1. Подставляем секреты в secret.yaml
-        # (envsubst < secret.yaml работает корректно, так как переменные TELEGRAM_TOKEN и API_FOOTBALL_KEY явно не указаны в YAML)
         envsubst < kubernetes/secret.yaml | kubectl apply -f -
         
         # 2. Подставляем путь к образу в deployment.yaml и применяем его
-        # КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Явно указываем envsubst заменить $IMAGE_PATH.
+        # ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ: Явно указываем envsubst заменить $IMAGE_PATH.
         envsubst '$IMAGE_PATH' < kubernetes/deployment.yaml | kubectl apply -f -
         
         # Ожидаем завершения деплоя
