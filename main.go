@@ -12,28 +12,18 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-// Структуры для декодирования ответа API-FOOTBALL
-type Team struct {
-	Name string `json:"name"`
+// --- НОВЫЕ СТРУКТУРЫ для API-SPORT.RU ---
+type MatchData struct {
+	Team1Name string `json:"team1_name"`
+	Team2Name string `json:"team2_name"`
+	Date string `json:"date"` // Дата и время матча
 }
 
-type Teams struct {
-	Home Team `json:"home"`
-	Away Team `json:"away"`
+type APISportResponse struct {
+	Status string `json:"status"` // Ожидаем "success"
+	Data []MatchData `json:"data"`
 }
-
-type Fixture struct {
-	Date string `json:"date"` // Дата в формате ISO 8601
-}
-
-type MatchDetail struct {
-	Fixture Fixture `json:"fixture"`
-	Teams   Teams   `json:"teams"`
-}
-
-type APIResponse struct {
-	Response []MatchDetail `json:"response"`
-}
+// ----------------------------------------
 
 func main() {
 	botToken := os.Getenv("TELEGRAM_BOT_TOKEN")
@@ -102,27 +92,27 @@ func createMainMenu() tgbotapi.InlineKeyboardMarkup {
 			tgbotapi.NewInlineKeyboardButtonData("⚽ Ближайшие матчи (2ч)", "nearest_matches"),
 		),
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonURL("Сайт API Football", "https://dashboard.api-football.com/"),
+			tgbotapi.NewInlineKeyboardButtonURL("Сайт API Sport", "https://api-sport.ru/"),
 		),
 	)
 	return keyboard
 }
 
 // -----------------------------------------------------------------------------------
-// ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ МАТЧЕЙ (Добавлены минимальные параметры для Free Tier)
+// ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ МАТЧЕЙ (для API-SPORT.RU)
 // -----------------------------------------------------------------------------------
 
 func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
-	apiKey := os.Getenv("API_FOOTBALL_KEY")
+	apiKey := os.Getenv("API_SPORT_KEY")
 	if apiKey == "" {
-		msg := tgbotapi.NewMessage(chatID, "Ошибка: Ключ API_FOOTBALL_KEY не установлен. Пожалуйста, сообщите администратору.")
+		msg := tgbotapi.NewMessage(chatID, "Ошибка: Ключ API_SPORT_KEY не установлен. Пожалуйста, сообщите администратору.")
 		bot.Send(msg)
 		return
 	}
 
-	// ФИНАЛЬНОЕ ИЗМЕНЕНИЕ: Добавляем параметры 'season' и 'current', которые API может требовать.
-	// Домен api-sports.io исправлен.
-	apiURL := "https://v3.football.api-sports.io/fixtures?current=true&season=2024" 
+	// Формируем URL для получения матчей на сегодня. Используем apikey в URL.
+	today := time.Now().Format("2006-01-02")
+	apiURL := fmt.Sprintf("https://api-sport.ru/api/matches?date=%s&apikey=%s", today, apiKey) 
 	
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
@@ -130,9 +120,7 @@ func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
 		return
 	}
 	
-	// Используем заголовок X-Api-Key для прямого API
-	req.Header.Add("X-Api-Key", apiKey) 
-	
+	// Для этого API заголовки не требуются
 	client := http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	
@@ -145,19 +133,22 @@ func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
 		defer resp.Body.Close()
 		
 		body, _ := ioutil.ReadAll(resp.Body)
-		var apiResponse APIResponse
+		var apiResponse APISportResponse
 		
 		if resp.StatusCode != http.StatusOK {
 			log.Printf("API returned status %d. Body: %s", resp.StatusCode, string(body))
-			
-			// Если мы видим 451/403, это 100% блокировка ключа/лимита.
-			msgText = fmt.Sprintf("Ошибка API: статус %d. Проверьте подписку или лимиты API-Football.", resp.StatusCode)
+			msgText = fmt.Sprintf("Ошибка API: статус %d. Проверьте ваш ключ API Sport.", resp.StatusCode)
 			
 		} else if err := json.Unmarshal(body, &apiResponse); err != nil {
 			log.Printf("Error decoding JSON: %v. Body: %s", err, string(body))
 			msgText = "Ошибка обработки данных матчей."
+			
+		} else if apiResponse.Status != "success" {
+			log.Printf("API returned status: %s. Body: %s", apiResponse.Status, string(body))
+			msgText = fmt.Sprintf("Ошибка API: статус не 'success'. Проверьте ваш ключ API Sport.")
+			
 		} else {
-			msgText = filterAndFormatMatches(apiResponse.Response)
+			msgText = filterAndFormatMatches(apiResponse.Data)
 		}
 	}
 	
@@ -169,33 +160,31 @@ func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
 }
 
 // Фильтрует матчи, начинающиеся в ближайшие 2 часа
-func filterAndFormatMatches(matches []MatchDetail) string {
-	now := time.Now().UTC()
+func filterAndFormatMatches(matches []MatchData) string {
+	now := time.Now().In(time.FixedZone("MSK", 3*60*60)) // Работаем в MSK для нового API
 	twoHoursLater := now.Add(2 * time.Hour)
 	
 	result := "⚽️ *Ближайшие матчи (в течение 2 часов):*\n\n"
 	found := false
 
-	// Шаблон времени API-Football: "2006-01-02T15:04:05-07:00"
-	const apiTimeLayout = "2006-01-02T15:04:05-07:00" 
+	// Шаблон времени API-Sport.ru (судя по документации): "YYYY-MM-DD HH:MM:SS"
+	const apiTimeLayout = "2006-01-02 15:04:05" 
 
 	for _, match := range matches {
-		matchTime, err := time.Parse(apiTimeLayout, match.Fixture.Date)
+		// Парсим время, предполагая, что оно в MSK (как это часто бывает в российских API)
+		matchTime, err := time.ParseInLocation(apiTimeLayout, match.Date, time.FixedZone("MSK", 3*60*60)) 
 
 		if err != nil {
-			log.Printf("Error parsing time: %v for date: %s", err, match.Fixture.Date)
+			log.Printf("Error parsing time: %v for date: %s", err, match.Date)
 			continue
 		}
 		
-		// Фильтруем матчи в диапазоне времени (API возвращает UTC, сравниваем с UTC)
+		// Фильтруем матчи в диапазоне времени (сравниваем MSK с MSK)
 		if matchTime.After(now) && matchTime.Before(twoHoursLater) {
-			// Форматируем время для пользователя (например, в московское время)
-			localTime := matchTime.In(time.FixedZone("MSK", 3*60*60)) 
-
 			result += fmt.Sprintf("🕔 %s: **%s** vs **%s**\n", 
-				localTime.Format("15:04 MSK"), 
-				match.Teams.Home.Name, 
-				match.Teams.Away.Name)
+				matchTime.Format("15:04 MSK"), 
+				match.Team1Name, 
+				match.Team2Name)
 			found = true
 		}
 	}
