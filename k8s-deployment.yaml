@@ -14,30 +14,36 @@ spec:
       labels:
         app: telegram-ludic-bot
     spec:
+      # !!! КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: ПРИНУДИТЕЛЬНЫЙ ВНЕШНИЙ DNS !!!
+      dnsPolicy: "None"
+      dnsConfig:
+        nameservers:
+          - "8.8.8.8"
+        searches:
+          - default.svc.cluster.local
+          - svc.cluster.local
+          - cluster.local
+      # ------------------------------------------------------------------
       containers:
       - name: hello-bot
-        # !!! ВАЖНО: ЗАМЕНИТЕ <ВАШ_DOCKER_USERNAME> НА СВОЙ ЛОГИН !!!
+        # !!! ПЛЕЙСХОЛДЕР: Замените <ВАШ_DOCKER_USERNAME> !!!
         image: docker.io/<ВАШ_DOCKER_USERNAME>/ludic-bot:latest 
         imagePullPolicy: Always
-        # Получаем токен из Kubernetes Secret
         env:
         - name: TELEGRAM_BOT_TOKEN
           valueFrom:
             secretKeyRef:
               name: telegram-bot-secret
               key: token
-        # =========================================================
-        # НОВЫЕ ПАРАМЕТРЫ РЕСУРСОВ (Увеличены в 8 раз)
         resources:
           limits:
-            memory: "512Mi" # Было 64Mi * 8
-            cpu: "800m"     # Было 100m * 8 (т.е. 0.8 CPU)
+            memory: "512Mi"
+            cpu: "800m"
           requests:
-            memory: "256Mi" # Было 32Mi * 8
-            cpu: "400m"     # Было 50m * 8 (т.е. 0.4 CPU)
-        # =========================================================
+            memory: "256Mi"
+            cpu: "400m"
 ---
-# Этот Secret будет создан/обновлен пайплайном GitHub Actions
+# Secret должен быть создан пайплайном
 apiVersion: v1
 kind: Secret
 metadata:
