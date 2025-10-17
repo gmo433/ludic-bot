@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 	"net/http"
-	"io/ioutil"
-	"encoding/json"
+	"io/ioutil" // Оставляем, так как используется для ioutil.ReadAll
+	"encoding/json" // Оставляем, так как используется для json.Unmarshal
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -103,17 +103,14 @@ func createMainMenu() tgbotapi.InlineKeyboardMarkup {
 // -----------------------------------------------------------------------------------
 
 func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
-	// !!! ИСПРАВЛЕНИЕ: ИСПОЛЬЗУЕМ ПРАВИЛЬНОЕ ИМЯ ПЕРЕМЕННОЙ ОКРУЖЕНИЯ
 	apiKey := os.Getenv("API_SPORT_KEY") 
 	
 	if apiKey == "" {
-		// Уточненное сообщение об ошибке
 		msg := tgbotapi.NewMessage(chatID, "Ошибка: Ключ API_SPORT_KEY не установлен. Пожалуйста, сообщите администратору.")
 		bot.Send(msg)
 		return
 	}
 
-	// Формируем URL для получения матчей на сегодня. Используем apikey в URL.
 	today := time.Now().Format("2006-01-02")
 	apiURL := fmt.Sprintf("https://api-sport.ru/api/matches?date=%s&apikey=%s", today, apiKey) 
 	
@@ -124,10 +121,78 @@ func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
 	}
 	
 	client := http.Client{Timeout: 10 * time.Second}
+	
+    // ИСПРАВЛЕНИЕ: объявляем resp и msgText внутри else, где они гарантированно используются
 	resp, err := client.Do(req)
 	
-	msgText := ""
+	var msgText string
 
 	if err != nil {
 		log.Printf("Error fetching API: %v", err)
-		msgText = "
+		msgText = "Извините, не удалось подключиться к сервису матчей."
+	} else {
+		defer resp.Body.Close()
+		
+		body, _ := ioutil.ReadAll(resp.Body)
+		var apiResponse APISportResponse
+		
+		if resp.StatusCode != http.StatusOK {
+			log.Printf("API returned status %d. Body: %s", resp.StatusCode, string(body))
+			msgText = fmt.Sprintf("Ошибка API: статус %d. Проверьте ваш ключ API Sport.", resp.StatusCode)
+			
+		} else if err := json.Unmarshal(body, &apiResponse); err != nil {
+			log.Printf("Error decoding JSON: %v. Body: %s", err, string(body))
+			msgText = "Ошибка обработки данных матчей."
+			
+		} else if apiResponse.Status != "success" {
+			log.Printf("API returned status: %s. Body: %s", apiResponse.Status, string(body))
+			// ИСПРАВЛЕНИЕ: Убираем возможный разрыв строки
+			msgText = fmt.Sprintf("Ошибка API: статус не 'success'. Проверьте ваш ключ API Sport.")
+			
+		} else {
+			msgText = filterAndFormatMatches(apiResponse.Data)
+		}
+	}
+	
+	msg := tgbotapi.NewMessage(chatID, msgText)
+	msg.ParseMode = "Markdown"
+	if _, err := bot.Send(msg); err != nil {
+		log.Println(err)
+	}
+}
+
+// Фильтрует матчи, начинающиеся в ближайшие 2 часа
+func filterAndFormatMatches(matches []MatchData) string {
+	now := time.Now().In(time.FixedZone("MSK", 3*60*60)) // Работаем в MSK для нового API
+	twoHoursLater := now.Add(2 * time.Hour)
+	
+	result := "⚽️ *Ближайшие матчи (в течение 2 часов):*\n\n"
+	found := false
+
+	// Шаблон времени API-Sport.ru (YYYY-MM-DD HH:MM:SS)
+	const apiTimeLayout = "2006-01-02 15:04:05" 
+
+	for _, match := range matches {
+		// Парсим время, предполагая, что оно в MSK 
+		matchTime, err := time.ParseInLocation(apiTimeLayout, match.Date, time.FixedZone("MSK", 3*60*60)) 
+
+		if err != nil {
+			log.Printf("Error parsing time: %v for date: %s", err, match.Date)
+			continue
+		}
+		
+		// Фильтруем матчи в диапазоне времени (сравниваем MSK с MSK)
+		if matchTime.After(now) && matchTime.Before(twoHoursLater) {
+			result += fmt.Sprintf("🕔 %s: **%s** vs **%s**\n", 
+				matchTime.Format("15:04 MSK"), 
+				match.Team1Name, 
+				match.Team2Name)
+			found = true
+		}
+	}
+
+	if !found {
+		return "Нет матчей, начинающихся в ближайшие 2 часа."
+	}
+	return result
+}
