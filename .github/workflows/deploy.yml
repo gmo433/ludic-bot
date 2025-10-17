@@ -46,8 +46,13 @@ jobs:
     # =======================================================
     # СЕКЦИЯ KUBERNETES (Деплой)
     # =======================================================
-    - name: 5. Set up Kubeconfig (Base64 Decode)
+    - name: 5. Set up Kubeconfig
       run: |
+        # !!! КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Сначала создаем каталог $HOME/.kube !!!
+        # Ошибка 'No such file or directory' устраняется этой командой.
+        mkdir -p $HOME/.kube
+        
+        # Теперь декодируем и записываем содержимое секрета KUBECONFIG_B64
         echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > $HOME/.kube/config
         
     - name: 6. Install kubectl
