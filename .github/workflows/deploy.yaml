@@ -8,7 +8,6 @@ on:
 
 env:
   IMAGE_NAME: ludic-bot
-  # Registry: docker.io/gmo433/ludic-bot
   REGISTRY: docker.io/${{ secrets.DOCKERHUB_USERNAME }}
   IMAGE_TAG: ${{ github.sha }}
 
@@ -37,7 +36,7 @@ jobs:
         push: true
         tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
         file: ./Dockerfile
-        # !!! КРИТИЧНОЕ ИСПРАВЛЕНИЕ: ОТКЛЮЧАЕМ КЭШ !!!
+        # Оставляем no-cache: true для гарантии прохождения первого билда
         no-cache: true 
     
     - name: 5. Setup Kubeconfig
@@ -58,7 +57,6 @@ jobs:
       with:
         manifests: |
           k8s-deployment.yaml
-        # Обновляем Deployment новым образом
         images: |
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
         action: deploy
