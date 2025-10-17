@@ -36,27 +36,34 @@ jobs:
         push: true
         tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }},${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
         file: ./Dockerfile
-        # Оставляем no-cache: true для гарантии прохождения первого билда
         no-cache: true 
     
-    - name: 5. Setup Kubeconfig
-      uses: azure/k8s-set-context@v4
-      with:
-        method: kubeconfig
-        kubeconfig: ${{ secrets.KUBECONFIG_B64 }}
-        
+    # =========================================================================
+    # !!! НОВЫЙ ИСПРАВЛЕННЫЙ БЛОК ДЛЯ KUBECONFIG И DEPLOY !!!
+    # =========================================================================
+
+    - name: 5. Decode and Setup Kubeconfig
+      id: kubeconfig
+      # Декодируем Base64 строку и записываем её в файл,
+      # затем устанавливаем KUBECONFIG для всех последующих команд.
+      run: |
+        echo "Starting Kubeconfig setup..."
+        echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > /tmp/kubeconfig.yaml
+        echo "KUBECONFIG=/tmp/kubeconfig.yaml" >> $GITHUB_ENV
+        echo "Kubeconfig successfully decoded and set."
+      shell: bash
+
     - name: 6. Apply Kubernetes Secret for Telegram Token
-      # Создаем/обновляем Secret с токеном бота
+      # Теперь kubectl использует KUBECONFIG=/tmp/kubeconfig.yaml
       run: |
         kubectl create secret generic telegram-bot-secret \
           --from-literal=token="${{ secrets.TELEGRAM_BOT_TOKEN }}" \
           --dry-run=client -o yaml | kubectl apply -f -
+      shell: bash
           
     - name: 7. Deploy to Kubernetes
-      uses: azure/k8s-deploy@v4
-      with:
-        manifests: |
-          k8s-deployment.yaml
-        images: |
-          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
-        action: deploy
+      # Обновляем Deployment и применяем манифест
+      run: |
+        kubectl set image deployment/telegram-ludic-bot hello-bot=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+        kubectl apply -f k8s-deployment.yaml
+      shell: bash
