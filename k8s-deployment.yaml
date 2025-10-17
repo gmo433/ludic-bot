@@ -27,7 +27,8 @@ spec:
       
       containers:
       - name: telegram-ludic-bot
-        image: <ВАШ_DOCKER_IMAGE_ЗДЕСЬ>  # !!! ВСТАВЬТЕ СВОЙ ОБРАЗ Docker. Например: gmo433/ludic-bot:latest
+        # !!! ВАЖНО: ЗАМЕНИТЕ ЭТУ СТРОКУ НА ВАШ РЕАЛЬНЫЙ ОБРАЗ Docker
+        image: gmo433/ludic-bot:latest  
         ports:
         - containerPort: 8080
         
@@ -39,9 +40,9 @@ spec:
               name: telegram-bot-secret
               key: token
               
-        # 2. НОВЫЙ Секрет для API-Sport.ru
-        - name: API_SPORT_KEY  # <-- Новая переменная, используемая в main.go
+        # 2. Секрет для API-Sport.ru
+        - name: API_SPORT_KEY
           valueFrom:
             secretKeyRef:
-              name: api-sport-secret # <-- Имя Secret, который вы создали
-              key: API_SPORT_KEY    # <-- Имя ключа внутри Secret
+              name: api-sport-secret
+              key: API_SPORT_KEY
