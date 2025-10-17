@@ -1,9 +1,9 @@
 deploy:
   name: Deploy to Kubernetes
   runs-on: ubuntu-latest
-  needs: build-and-push # Запускается только после успешного создания и пуша образа
+  needs: build-and-push
   
-  # КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Определяем env-переменные для всего Job
+  # Определяем env-переменные для всего Job
   env:
     REGISTRY: docker.io
     IMAGE_NAME: ludic-bot
@@ -11,7 +11,15 @@ deploy:
   steps:
     - name: Checkout Code
       uses: actions/checkout@v4
-    
+      
+    # КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: Преобразуем имя пользователя Docker Hub в нижний регистр 
+    - name: Set Lowercase Docker Username
+      id: set_user_lower
+      run: |
+        # Используем bash для приведения имени пользователя к нижнему регистру
+        LOWER_USER=$(echo "${{ secrets.DOCKERHUB_USERNAME }}" | tr '[:upper:]' '[:lower:]')
+        echo "DOCKERHUB_USER_LOWER=$LOWER_USER" >> $GITHUB_ENV
+        
     # Установим утилиту envsubst, необходимую для безопасной подстановки секретов
     - name: Install Gettext (for envsubst)
       run: sudo apt-get update && sudo apt-get install -y gettext-base
@@ -30,12 +38,11 @@ deploy:
     # 3. Применение манифестов с безопасной подстановкой секретов и имени образа
     - name: Apply Kubernetes Manifests
       env:
-        # Теперь эти переменные будут заполнены, т.к. определены выше
         TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
         API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
         
-        # IMAGE_PATH теперь получит полные значения
-        IMAGE_PATH: ${{ env.REGISTRY }}/${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+        # IMAGE_PATH использует НОВУЮ переменную, гарантированно строчную
+        IMAGE_PATH: ${{ env.REGISTRY }}/${{ env.DOCKERHUB_USER_LOWER }}/${{ env.IMAGE_NAME }}:latest
       run: |
         echo "Starting K8s deployment..."
 
@@ -43,7 +50,6 @@ deploy:
         envsubst < kubernetes/secret.yaml | kubectl apply -f -
         
         # 2. Подставляем путь к образу в deployment.yaml и применяем его
-        # ФИНАЛЬНОЕ ИСПРАВЛЕНИЕ: Явно указываем envsubst заменить $IMAGE_PATH.
         envsubst '$IMAGE_PATH' < kubernetes/deployment.yaml | kubectl apply -f -
         
         # Ожидаем завершения деплоя
