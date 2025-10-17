@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telegram-ludic-bot
+  labels:
+    app: telegram-ludic-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: telegram-ludic-bot
+  template:
+    metadata:
+      labels:
+        app: telegram-ludic-bot
+    spec:
+      containers:
+      - name: hello-bot
+        # !!! ВАЖНО: ЗАМЕНИТЕ <ВАШ_DOCKER_USERNAME> НА СВОЙ ЛОГИН !!!
+        image: docker.io/<ВАШ_DOCKER_USERNAME>/ludic-bot:latest 
+        imagePullPolicy: Always
+        # Получаем токен из Kubernetes Secret
+        env:
+        - name: TELEGRAM_BOT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: telegram-bot-secret
+              key: token
+        resources:
+          limits:
+            memory: "64Mi"
+            cpu: "100m"
+          requests:
+            memory: "32Mi"
+            cpu: "50m"
+---
+# Этот Secret будет создан/обновлен пайплайном GitHub Actions
+apiVersion: v1
+kind: Secret
+metadata:
+  name: telegram-bot-secret
+type: Opaque
