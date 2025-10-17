@@ -2,14 +2,18 @@
 FROM golang:1.21-alpine AS builder
 
 WORKDIR /app
-# !!! ИСПРАВЛЕНИЕ: Копируем ТОЛЬКО go.mod !!!
+# Копируем только go.mod
 COPY go.mod ./ 
-# Эта команда сама скачает зависимости и сгенерирует go.sum
-RUN go mod download 
 
+# СКАЧИВАЕМ ЗАВИСИМОСТИ И ОБНОВЛЯЕМ GO.SUM ВМЕСТЕ
+# Это гарантирует, что go.mod и go.sum актуальны перед копированием кода
+RUN go mod download
+
+# Копируем остальной код, включая main.go
 COPY . .
 
 # Сборка статического бинарника
+# Go Build теперь видит сгенерированный go.sum из предыдущего шага
 RUN CGO_ENABLED=0 go build -ldflags "-s -w" -o /hello-bot .
 
 # Этап 2: Финальный образ (минимальный)
