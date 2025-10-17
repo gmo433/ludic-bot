@@ -1,0 +1,54 @@
+name: Deploy Ludic Bot to Kubernetes
+
+on:
+  push:
+    branches:
+      - main
+  # Также можно добавить запуск вручную
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    # Требуются следующие секреты:
+    # DOCKERHUB_USERNAME, DOCKERHUB_PASSWORD, KUBECONFIG_B64, TELEGRAM_BOT_TOKEN, API_SPORT_KEY
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # --- 1. Сборка и отправка Docker-образа ---
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/ludic-bot:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        # Используйте этот образ: ${{ secrets.DOCKERHUB_USERNAME }}/ludic-bot:latest
+
+    # --- 2. Развертывание в Kubernetes ---
+    - name: Set up Kubeconfig
+      # Создает файл kubeconfig из секрета KUBECONFIG_B64
+      run: |
+        echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > $HOME/kubeconfig
+        echo "KUBECONFIG=$HOME/kubeconfig" >> $GITHUB_ENV
+      
+    - name: Install kubectl
+      uses: azure/setup-kubectl@v4
+      
+    - name: Deploy to Kubernetes
+      # Применяет все манифесты из папки k8s/
+      run: |
+        kubectl apply -f k8s/
