@@ -1,6 +1,7 @@
 # Dockerfile
 # --- СТАДИЯ СБОРКИ ---
-FROM golang:1.21-alpine AS builder
+# !!! МЕНЯЕМ БАЗОВЫЙ ОБРАЗ С ALPINE НА DEBIAN-SLIM !!!
+FROM golang:1.21-slim AS builder
 
 WORKDIR /app
 
@@ -13,22 +14,17 @@ RUN go mod tidy
 # 3. Копируем весь исходный код (включая main.go)
 COPY . .
 
-# 4. !!! ДИАГНОСТИКА: Выводим содержимое файла main.go !!!
-# Ищите здесь невидимые символы или лишние строки.
-RUN echo "--- START MAIN.GO CONTENT ---" && cat main.go && echo "--- END MAIN.GO CONTENT ---"
-
-# 5. !!! ДИАГНОСТИКА: Проверяем наличие файла main.go в WORKDIR !!!
-RUN ls -l
-
-# 6. Сборка исполняемого файла
-# Если все выше работает, эта команда должна пройти
+# 4. Сборка исполняемого файла
+# Команда, которая должна работать
 RUN CGO_ENABLED=0 go build -v -ldflags "-s -w" -o /bot main.go
 
 # --- ФИНАЛЬНЫЙ ОБРАЗ ---
-FROM alpine:latest
-RUN apk --no-cache add ca-certificates
+# !!! МЕНЯЕМ ФИНАЛЬНЫЙ ОБРАЗ НА DEBIAN-SLIM ДЛЯ СООТВЕТСТВИЯ !!!
+FROM debian:buster-slim
+# Здесь не нужны ca-certificates, так как они уже есть в образе debian-slim
 
 WORKDIR /root/
+# Копирование исполняемого файла
 COPY --from=builder /bot .
 
 # Запуск бота
