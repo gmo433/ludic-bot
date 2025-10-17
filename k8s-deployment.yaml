@@ -14,7 +14,7 @@ spec:
       labels:
         app: telegram-ludic-bot
     spec:
-      # !!! КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: ПРИНУДИТЕЛЬНЫЙ ВНЕШНИЙ DNS !!!
+      # --- КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: ОБХОД ОШИБКИ DNS (SERVFAIL) ---
       dnsPolicy: "None"
       dnsConfig:
         nameservers:
@@ -26,8 +26,8 @@ spec:
       # ------------------------------------------------------------------
       containers:
       - name: hello-bot
-        # !!! ПЛЕЙСХОЛДЕР: Замените <ВАШ_DOCKER_USERNAME> !!!
-        image: docker.io/<ВАШ_DOCKER_USERNAME>/ludic-bot:latest 
+        # !!! ВАШ ЛОГИН ROMAN3327 ИСПОЛЬЗУЕТСЯ ЗДЕСЬ !!!
+        image: docker.io/roman3327/ludic-bot:latest 
         imagePullPolicy: Always
         env:
         - name: TELEGRAM_BOT_TOKEN
@@ -43,7 +43,6 @@ spec:
             memory: "256Mi"
             cpu: "400m"
 ---
-# Secret должен быть создан пайплайном
 apiVersion: v1
 kind: Secret
 metadata:
