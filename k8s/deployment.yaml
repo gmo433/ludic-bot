@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ludic-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ludic-bot
+  template:
+    metadata:
+      labels:
+        app: ludic-bot
+    spec:
+      containers:
+        - name: ludic-bot
+          image: ghcr.io/YOUR_GH_USERNAME/ludic-bot:latest
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - secretRef:
+                name: ludic-bot-secrets
+          resources:
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
