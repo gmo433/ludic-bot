@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: football-bot-deployment
+  labels:
+    app: football-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: football-bot
+  template:
+    metadata:
+      labels:
+        app: football-bot
+    spec:
+      containers:
+      - name: football-bot
+        # Образ будет взят из Docker Hub
+        image: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/ludic-bot:latest
+        
+        resources:
+          limits:
+            memory: "64Mi"
+            cpu: "100m"
+          requests:
+            memory: "32Mi"
+            cpu: "50m"
+        
+        # Передача секретов из K8s Secret
+        env:
+        - name: TELEGRAM_BOT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: football-bot-secrets # Имя K8s Secret
+              key: TELEGRAM_BOT_TOKEN # Ключ внутри K8s Secret
+        - name: API_FOOTBALL_KEY
+          valueFrom:
+            secretKeyRef:
+              name: football-bot-secrets 
+              key: API_FOOTBALL_KEY 
+        
+        livenessProbe:
+          exec:
+            command: ["/bin/true"] 
+          initialDelaySeconds: 10
+          periodSeconds: 30
