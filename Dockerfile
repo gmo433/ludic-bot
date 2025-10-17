@@ -2,9 +2,9 @@
 FROM golang:1.21-alpine AS builder
 
 WORKDIR /app
-# Копируем go.mod и go.sum (созданы вручную)
-COPY go.mod go.sum ./
-# Эта команда сама скачает зависимости на этапе сборки Docker
+# !!! ИСПРАВЛЕНИЕ: Копируем ТОЛЬКО go.mod !!!
+COPY go.mod ./ 
+# Эта команда сама скачает зависимости и сгенерирует go.sum
 RUN go mod download 
 
 COPY . .
