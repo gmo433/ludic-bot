@@ -1,35 +1,29 @@
 # Dockerfile
 # --- СТАДИЯ СБОРКИ ---
-FROM golang:1.21 AS builder
+# Используем образ Python, основанный на Debian Buster (более стабильный, чем Alpine для Python)
+FROM python:3.11-slim-buster AS builder
 
+# Устанавливаем рабочую директорию
 WORKDIR /app
 
-# 1. Копируем только main.go (гарантируем его присутствие)
-COPY main.go .
+# Копируем и устанавливаем зависимости
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# 2. Копируем go.mod
-COPY go.mod .
+# Копируем код приложения
+COPY main.py .
 
-# 3. Загружаем и очищаем зависимости (генерирует go.sum)
-RUN go mod tidy 
+# --- ФИНАЛЬНЫЙ ОБРАЗ ---
+# Используем минимальный образ без SDK для уменьшения размера
+FROM python:3.11-slim-buster
 
-# 4. Копируем все остальные файлы (если они есть)
-COPY . .
+# Устанавливаем рабочую директорию и копируем зависимости из стадии builder
+WORKDIR /app
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
-# 5. Сборка исполняемого файла
-# Используем go build main.go — самый надёжный способ, когда main.go находится в WORKDIR.
-RUN CGO_ENABLED=0 go build -v -ldflags "-s -w" -o /bot main.go
+# Копируем код приложения (main.py)
+COPY main.py .
 
-# --- ФИНАЛЬНЫЙ ОБРАЗ (Минимальный) ---
-FROM debian:buster-slim
-
-WORKDIR /root/
-
-# 6. Копируем исполняемый файл из стадии сборки
-COPY --from=builder /bot .
-
-# 7. Убеждаемся, что бинарник имеет права на исполнение
-RUN chmod +x /root/bot
-
-# Запуск бота
-CMD ["./bot"]
+# Команда для запуска бота
+CMD ["python", "main.py"]
