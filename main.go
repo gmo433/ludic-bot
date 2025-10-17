@@ -109,7 +109,7 @@ func createMainMenu() tgbotapi.InlineKeyboardMarkup {
 }
 
 // -----------------------------------------------------------------------------------
-// ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ МАТЧЕЙ (ИСПРАВЛЕНА ДЛЯ ПРЯМОГО API-FOOTBALL)
+// ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ МАТЧЕЙ (Ультра-упрощенный запрос)
 // -----------------------------------------------------------------------------------
 
 func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
@@ -120,11 +120,9 @@ func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
 		return
 	}
 
-	today := time.Now().Format("2006-01-02")
-	
-	// ИСПРАВЛЕНИЕ 1: Используем ПРЯМОЙ URL API-FOOTBALL
-	// УДАЛЕНЫ league=39 и season=2024, чтобы избежать проблем с бесплатным лимитом.
-	apiURL := fmt.Sprintf("https://v3.football.api-sport.io/fixtures?date=%s", today) 
+	// АГРЕССИВНОЕ ИСПРАВЛЕНИЕ: Убираем все параметры (date, league, season)
+	// Это должно работать, если только API не требует параметров.
+	apiURL := "https://v3.football.api-sport.io/fixtures" 
 	
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
@@ -132,7 +130,7 @@ func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
 		return
 	}
 	
-	// ИСПРАВЛЕНИЕ 2: Используем заголовок X-Api-Key
+	// Используем заголовок X-Api-Key для прямого API
 	req.Header.Add("X-Api-Key", apiKey) 
 	
 	client := http.Client{Timeout: 10 * time.Second}
@@ -152,7 +150,7 @@ func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
 		if resp.StatusCode != http.StatusOK {
 			log.Printf("API returned status %d. Body: %s", resp.StatusCode, string(body))
 			
-			// Ошибка 451 теперь должна указывать на проблемы с лимитом/подпиской.
+			// Код 451 теперь ТОЧНО указывает на проблемы с лимитом/подпиской.
 			msgText = fmt.Sprintf("Ошибка API: статус %d. Проверьте подписку или лимиты API-Football.", resp.StatusCode)
 			
 		} else if err := json.Unmarshal(body, &apiResponse); err != nil {
@@ -179,31 +177,4 @@ func filterAndFormatMatches(matches []MatchDetail) string {
 	found := false
 
 	// Шаблон времени API-Football: "2006-01-02T15:04:05-07:00"
-	const apiTimeLayout = "2006-01-02T15:04:05-07:00" 
-
-	for _, match := range matches {
-		matchTime, err := time.Parse(apiTimeLayout, match.Fixture.Date)
-
-		if err != nil {
-			log.Printf("Error parsing time: %v for date: %s", err, match.Fixture.Date)
-			continue
-		}
-		
-		// Фильтруем матчи в диапазоне времени (API возвращает UTC, сравниваем с UTC)
-		if matchTime.After(now) && matchTime.Before(twoHoursLater) {
-			// Форматируем время для пользователя (например, в московское время)
-			localTime := matchTime.In(time.FixedZone("MSK", 3*60*60)) 
-
-			result += fmt.Sprintf("🕔 %s: **%s** vs **%s**\n", 
-				localTime.Format("15:04 MSK"), 
-				match.Teams.Home.Name, 
-				match.Teams.Away.Name)
-			found = true
-		}
-	}
-
-	if !found {
-		return "Нет матчей, начинающихся в ближайшие 2 часа."
-	}
-	return result
-}
+	const
