@@ -5,7 +5,12 @@ metadata:
   labels:
     app: telegram-ludic-bot
 spec:
-  replicas: 1
+  replicas: 2 # 2 реплики для отказоустойчивости
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   selector:
     matchLabels:
       app: telegram-ludic-bot
@@ -14,7 +19,7 @@ spec:
       labels:
         app: telegram-ludic-bot
     spec:
-      # --- КРИТИЧЕСКОЕ ИСПРАВЛЕНИЕ: ОБХОД ОШИБКИ DNS (SERVFAIL) ---
+      # --- ОБХОД DNS ---
       dnsPolicy: "None"
       dnsConfig:
         nameservers:
@@ -23,18 +28,36 @@ spec:
           - default.svc.cluster.local
           - svc.cluster.local
           - cluster.local
-      # ------------------------------------------------------------------
+      # -----------------
       containers:
       - name: hello-bot
-        # !!! ВАШ ЛОГИН ROMAN3327 ИСПОЛЬЗУЕТСЯ ЗДЕСЬ !!!
         image: docker.io/roman3327/ludic-bot:latest 
         imagePullPolicy: Always
         env:
+        # 1. Telegram Token
         - name: TELEGRAM_BOT_TOKEN
           valueFrom:
             secretKeyRef:
               name: telegram-bot-secret
               key: token
+        # 2. Football API Key
+        - name: API_FOOTBALL_KEY
+          valueFrom:
+            secretKeyRef:
+              name: football-api-secret
+              key: key
+        # --- ПРОБЫ ЖИЗНЕСПОСОБНОСТИ ---
+        livenessProbe:
+          exec:
+            command: ["/bin/true"]
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command: ["/bin/true"]
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        # --------------------------------
         resources:
           limits:
             memory: "512Mi"
@@ -47,4 +70,11 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: telegram-bot-secret
+type: Opaque
+---
+# Новый Secret для ключа API Football
+apiVersion: v1
+kind: Secret
+metadata:
+  name: football-api-secret
 type: Opaque
