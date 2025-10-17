@@ -1,0 +1,101 @@
+name: CI/CD Pipeline (Build & Deploy)
+
+on:
+  push:
+    branches:
+      - main
+  # Позволяет запускать пайплайн вручную через интерфейс GitHub Actions
+  workflow_dispatch:
+
+# Глобальные переменные окружения
+env:
+  IMAGE_NAME: ludic-bot 
+  REGISTRY: docker.io
+  # Используем Docker Hub Username из секрета
+  REPOSITORY_OWNER: ${{ secrets.DOCKERHUB_USERNAME }}
+
+jobs:
+  build-and-push:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        
+      # Логин в Docker Hub (использует ваши DOCKERHUB_USERNAME и DOCKER_PASSWORD)
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Define Image Tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.REPOSITORY_OWNER }}/${{ env.IMAGE_NAME }}
+          # Создаем теги: sha (короткий хэш коммита) и latest
+          tags: |
+            type=sha,prefix=,suffix=,format=short
+            type=raw,value=latest
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+# =========================================================
+# ЭТАП ДЕПЛОЯ В KUBERNETES
+# =========================================================
+  deploy:
+    name: Deploy to Kubernetes
+    runs-on: ubuntu-latest
+    needs: build-and-push # Запускается только после успешного создания и пуша образа
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      # Установим утилиту envsubst, необходимую для безопасной подстановки секретов
+      - name: Install Gettext (for envsubst)
+        run: sudo apt-get update && sudo apt-get install -y gettext-base
+
+      # 1. Настройка Kubeconfig (для аутентификации в вашем кластере)
+      - name: Set up Kubeconfig
+        run: |
+          # Декодируем base64 KUBECONFIG из секрета
+          echo "${{ secrets.KUBECONFIG_B64 }}" | base64 -d > /tmp/kubeconfig
+          echo "KUBECONFIG=/tmp/kubeconfig" >> $GITHUB_ENV # Устанавливаем переменную окружения
+          
+      # 2. Установка kubectl
+      - name: Install Kubectl
+        uses: azure/setup-kubectl@v3
+
+      # 3. Применение манифестов с безопасной подстановкой секретов
+      - name: Apply Kubernetes Manifests
+        env:
+          # Передаем реальные секреты в переменные окружения для envsubst
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+        run: |
+          echo "Starting K8s deployment..."
+
+          # Используем envsubst для замены заглушек в secret.yaml
+          # Передаем результат по конвейеру в kubectl, избегая хранения реальных секретов
+          envsubst < kubernetes/secret.yaml | kubectl apply -f -
+          
+          # Деплоим Deployment (который ссылается на созданный Secret)
+          kubectl apply -f kubernetes/deployment.yaml
+          
+          # Ожидаем завершения деплоя, чтобы убедиться в его успехе
+          kubectl rollout status deployment/football-bot-deployment --timeout=5m
+          echo "Deployment successful! Bot is running in Kubernetes
