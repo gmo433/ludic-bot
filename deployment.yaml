@@ -2,12 +2,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  # Имя вашего Deployment
   name: ludic-bot-deployment
   labels:
     app: ludic-bot
 spec:
-  # Запускаем один экземпляр бота
   replicas: 1
   selector:
     matchLabels:
@@ -19,23 +17,16 @@ spec:
     spec:
       containers:
       - name: ludic-bot
-        # !!! ВАЖНО: Замените на ваш логин Docker Hub !!!
+        # !!! ВАЖНО: ЗАМЕНИТЕ НА ВАШ ЛОГИН DOCKER HUB И ИМЯ ОБРАЗА!!!
         image: your-dockerhub-username/ludic-bot:latest 
         
-        # Порты (необязательно, но полезно для мониторинга или проверок)
-        ports:
-        - containerPort: 8080 
-          
-        # Переменные окружения
         env:
         - name: TELEGRAM_BOT_TOKEN
           valueFrom:
-            # Получаем токен из Kubernetes Secret, который вы создали ранее
             secretKeyRef:
-              name: telegram-bot-secret # Имя Secret, созданного через kubectl
+              name: telegram-bot-secret # Имя Secret в K8s
               key: token                # Ключ, по которому хранится токен
               
-        # Ограничения ресурсов (рекомендуется для стабильности K8s)
         resources:
           limits:
             cpu: "100m"
