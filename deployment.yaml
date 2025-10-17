@@ -25,7 +25,7 @@ spec:
           valueFrom:
             secretKeyRef:
               name: telegram-bot-secret # Имя Secret в K8s
-              key: token                # Ключ, по которому хранится токен
+              key: TELEGRAM_BOT_TOKEN                # Ключ, по которому хранится токен
               
         resources:
           limits:
