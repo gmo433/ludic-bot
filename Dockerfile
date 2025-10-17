@@ -3,25 +3,26 @@
 # ==========================
 FROM python:3.11-slim
 
-# Устанавливаем рабочую директорию внутри контейнера
 WORKDIR /app
 
-# Обновляем системные пакеты (для сертификатов HTTPS)
+# Обновляем систему и ставим минимальные зависимости (для сборки wheel'ов)
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libffi-dev \
+    libssl-dev \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Копируем файл зависимостей
+# Копируем список зависимостей
 COPY requirements.txt .
 
-# ✅ Обновляем pip и устанавливаем зависимости
-RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
+# ✅ Обновляем pip, setuptools и wheel перед установкой
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r requirements.txt
 
-# Копируем исходный код бота
+# Копируем код бота
 COPY bot.py .
 
-# Отключаем буферизацию stdout/stderr, чтобы логи сразу шли в kubectl logs
 ENV PYTHONUNBUFFERED=1
 
-# Запускаем бота
 CMD ["python", "bot.py"]
