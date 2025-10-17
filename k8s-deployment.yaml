@@ -26,13 +26,16 @@ spec:
             secretKeyRef:
               name: telegram-bot-secret
               key: token
+        # =========================================================
+        # НОВЫЕ ПАРАМЕТРЫ РЕСУРСОВ (Увеличены в 8 раз)
         resources:
           limits:
-            memory: "64Mi"
-            cpu: "100m"
+            memory: "512Mi" # Было 64Mi * 8
+            cpu: "800m"     # Было 100m * 8 (т.е. 0.8 CPU)
           requests:
-            memory: "32Mi"
-            cpu: "50m"
+            memory: "256Mi" # Было 32Mi * 8
+            cpu: "400m"     # Было 50m * 8 (т.е. 0.4 CPU)
+        # =========================================================
 ---
 # Этот Secret будет создан/обновлен пайплайном GitHub Actions
 apiVersion: v1
