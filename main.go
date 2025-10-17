@@ -25,24 +25,29 @@ func main() {
 		log.Panic("Failed to create new bot API client: ", err)
 	}
 
-	bot.Debug = true // Можно установить в false после отладки
+	bot.Debug = false // Устанавливаем в false для продакшена
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 
-	ctx, cancel := context.WithCancel(context.Background())
+	// **********************************************
+	// ИСПРАВЛЕНО: Убираем неиспользуемую переменную ctx
+	// **********************************************
+	
+	// Контекст используется только для отмены, если потребуется
+	_, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	updates := bot.GetUpdatesChan(u)
 
 	// Основной цикл обработки обновлений
 	for update := range updates {
-		if update.Message == nil { // Игнорируем любые не-сообщения
+		if update.Message == nil {
 			continue
 		}
 
-		if !update.Message.IsCommand() { // Игнорируем не-команды
+		if !update.Message.IsCommand() {
 			continue
 		}
 
