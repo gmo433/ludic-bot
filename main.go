@@ -12,7 +12,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-// --- НОВЫЕ СТРУКТУРЫ для API-SPORT.RU ---
+// --- СТРУКТУРЫ для API-SPORT.RU ---
 type MatchData struct {
 	Team1Name string `json:"team1_name"`
 	Team2Name string `json:"team2_name"`
@@ -103,8 +103,11 @@ func createMainMenu() tgbotapi.InlineKeyboardMarkup {
 // -----------------------------------------------------------------------------------
 
 func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
-	apiKey := os.Getenv("API_SPORT_KEY")
+	// !!! ИСПРАВЛЕНИЕ: ИСПОЛЬЗУЕМ ПРАВИЛЬНОЕ ИМЯ ПЕРЕМЕННОЙ ОКРУЖЕНИЯ
+	apiKey := os.Getenv("API_SPORT_KEY") 
+	
 	if apiKey == "" {
+		// Уточненное сообщение об ошибке
 		msg := tgbotapi.NewMessage(chatID, "Ошибка: Ключ API_SPORT_KEY не установлен. Пожалуйста, сообщите администратору.")
 		bot.Send(msg)
 		return
@@ -120,7 +123,6 @@ func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
 		return
 	}
 	
-	// Для этого API заголовки не требуются
 	client := http.Client{Timeout: 10 * time.Second}
 	resp, err := client.Do(req)
 	
@@ -167,11 +169,11 @@ func filterAndFormatMatches(matches []MatchData) string {
 	result := "⚽️ *Ближайшие матчи (в течение 2 часов):*\n\n"
 	found := false
 
-	// Шаблон времени API-Sport.ru (судя по документации): "YYYY-MM-DD HH:MM:SS"
+	// Шаблон времени API-Sport.ru (YYYY-MM-DD HH:MM:SS)
 	const apiTimeLayout = "2006-01-02 15:04:05" 
 
 	for _, match := range matches {
-		// Парсим время, предполагая, что оно в MSK (как это часто бывает в российских API)
+		// Парсим время, предполагая, что оно в MSK 
 		matchTime, err := time.ParseInLocation(apiTimeLayout, match.Date, time.FixedZone("MSK", 3*60*60)) 
 
 		if err != nil {
