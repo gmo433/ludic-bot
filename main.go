@@ -8,7 +8,8 @@ import (
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/gmo433/ludic-bot/api" // <--- ОБНОВЛЕНО
+	"github.com/gmo433/ludic-bot/api"
+	"github.com/gmo433/ludic-bot/models" // <-- КРИТИЧЕСКИ ВАЖНЫЙ ИМПОРТ
 )
 
 const (
@@ -16,13 +17,13 @@ const (
 )
 
 func main() {
-	// Токен бота считывается из переменной окружения
-	botToken := os.Getenv("TELEGRAM_BOT_TOKEN") // Используем TELEGRAM_BOT_TOKEN для K8s Secret
+	// Токен бота считывается из переменной окружения, переданной K8s Secret
+	botToken := os.Getenv("TELEGRAM_BOT_TOKEN") 
 	if botToken == "" {
-		// Используем TELEGRAM_TOKEN, который вы создали в GitHub Secrets для совместимости
+        // Дополнительная проверка на случай, если используется другое имя секрета
         botToken = os.Getenv("TELEGRAM_TOKEN")
         if botToken == "" {
-            log.Fatal("TELEGRAM_TOKEN and TELEGRAM_BOT_TOKEN environment variables not set")
+            log.Fatal("TELEGRAM_BOT_TOKEN environment variable not set. Bot cannot start.")
         }
 	}
 
@@ -64,6 +65,7 @@ func handleUpcomingMatches(bot *tgbotapi.BotAPI, chatID int64) {
 	msg := tgbotapi.NewMessage(chatID, "Ищу матчи, которые начнутся в течение 1 часа...")
 	bot.Send(msg)
 
+	// Получаем матчи
 	matches, err := api.GetUpcomingMatches(MatchInterval)
 	if err != nil {
 		log.Printf("Error getting upcoming matches: %v", err)
@@ -79,7 +81,8 @@ func handleUpcomingMatches(bot *tgbotapi.BotAPI, chatID int64) {
 	bot.Send(finalMsg)
 }
 
-func formatMatches(matches []api.FixtureWrapper) string {
+// formatMatches теперь корректно принимает []models.FixtureWrapper
+func formatMatches(matches []models.FixtureWrapper) string { 
 	if len(matches) == 0 {
 		return "В ближайший час матчей не ожидается\\."
 	}
@@ -95,7 +98,6 @@ func formatMatches(matches []api.FixtureWrapper) string {
 		leagueName := strings.ReplaceAll(m.League.Name, ".", "\\.")
 		homeTeam := strings.ReplaceAll(m.Teams.Home.Name, "-", "—")
 		awayTeam := strings.ReplaceAll(m.Teams.Away.Name, "-", "—")
-
 
 		sb.WriteString(fmt.Sprintf(
 			"*%d\\.* %s: *%s* vs *%s*\n",
