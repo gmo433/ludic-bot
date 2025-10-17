@@ -109,7 +109,7 @@ func createMainMenu() tgbotapi.InlineKeyboardMarkup {
 }
 
 // -----------------------------------------------------------------------------------
-// ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ МАТЧЕЙ (Ультра-упрощенный запрос с правильным доменом)
+// ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ МАТЧЕЙ (Добавлены минимальные параметры для Free Tier)
 // -----------------------------------------------------------------------------------
 
 func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
@@ -120,8 +120,9 @@ func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
 		return
 	}
 
-	// ИСПРАВЛЕНИЕ: Добавлен 's' в домен. Это правильный API. Параметры убраны для совместимости с Free Tier.
-	apiURL := "https://v3.football.api-sports.io/fixtures" 
+	// ФИНАЛЬНОЕ ИЗМЕНЕНИЕ: Добавляем параметры 'season' и 'current', которые API может требовать.
+	// Домен api-sports.io исправлен.
+	apiURL := "https://v3.football.api-sports.io/fixtures?current=true&season=2024" 
 	
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
@@ -149,7 +150,7 @@ func sendMatches(bot *tgbotapi.BotAPI, chatID int64) {
 		if resp.StatusCode != http.StatusOK {
 			log.Printf("API returned status %d. Body: %s", resp.StatusCode, string(body))
 			
-			// Если мы видим 451/403, это 100% лимит/подписка.
+			// Если мы видим 451/403, это 100% блокировка ключа/лимита.
 			msgText = fmt.Sprintf("Ошибка API: статус %d. Проверьте подписку или лимиты API-Football.", resp.StatusCode)
 			
 		} else if err := json.Unmarshal(body, &apiResponse); err != nil {
