@@ -4,16 +4,273 @@
   --text: #E6EEF8;
   --muted: #9FB3C8;
   --accent: #2dd4bf;
+  --error: #f87171;
+  --success: #34d399;
+  --warning: #fbbf24;
 }
-html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Helvetica,Arial}
-body{background:var(--bg);color:var(--text);display:flex;align-items:flex-start;justify-content:center;padding:20px}
-.container{width:100%;max-width:720px}
-header h1{margin:0;font-size:22px}
-.subtitle{color:var(--muted);margin:6px 0 18px}
-.controls{display:flex;gap:10px;margin-bottom:12px}
-button{background:var(--accent);border:none;padding:10px 14px;border-radius:10px;color:#042018;font-weight:600;cursor:pointer}
-.matches{background:var(--card);padding:12px;border-radius:12px;min-height:120px}
-.match{padding:10px 8px;border-radius:8px}
-.match + .match{margin-top:8px;border-top:1px solid rgba(255,255,255,0.02);padding-top:12px}
-.league{font-weight:700}
-.time{color:var(--muted);font-size:13px;margin-top:6px}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: Inter, Segoe UI, Helvetica, Arial;
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+.container {
+  width: 100%;
+  max-width: 720px;
+}
+
+header {
+  margin-bottom: 20px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.subtitle {
+  color: var(--muted);
+  margin: 6px 0 18px;
+  font-size: 14px;
+}
+
+.user-info {
+  background: rgba(45, 212, 191, 0.1);
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-size: 13px;
+  border-left: 3px solid var(--accent);
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+button {
+  background: var(--accent);
+  border: none;
+  padding: 10px 14px;
+  border-radius: 10px;
+  color: #042018;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+button:hover {
+  background: #22c3a7;
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+button.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+}
+
+button.secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.matches {
+  background: var(--card);
+  padding: 16px;
+  border-radius: 12px;
+  min-height: 120px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.match {
+  padding: 12px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  transition: background 0.2s ease;
+}
+
+.match:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.match + .match {
+  margin-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+  padding-top: 12px;
+}
+
+.league {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+
+.vs {
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 4px;
+}
+
+.score {
+  font-weight: bold;
+  font-size: 16px;
+  margin: 6px 0;
+  color: var(--accent);
+  text-align: center;
+}
+
+.time {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+/* Стили для уведомлений */
+.notification {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 20px;
+  background: var(--success);
+  color: white;
+  border-radius: 8px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  font-size: 14px;
+  max-width: 80%;
+  text-align: center;
+  animation: slideIn 0.3s ease-out;
+}
+
+.notification.error {
+  background: var(--error);
+}
+
+.notification.warning {
+  background: var(--warning);
+  color: #1f2937;
+}
+
+@keyframes slideIn {
+  from { 
+    top: -50px; 
+    opacity: 0; 
+  }
+  to { 
+    top: 20px; 
+    opacity: 1; 
+  }
+}
+
+/* Стили для состояний загрузки и ошибок */
+.match.error {
+  background: rgba(248, 113, 113, 0.1);
+  border-left: 3px solid var(--error);
+  color: var(--error);
+}
+
+.match.loading {
+  text-align: center;
+  background: transparent;
+  border: none;
+  font-style: italic;
+  color: var(--muted);
+}
+
+/* Стили для счетчика матчей */
+.matches-count {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 10px;
+  text-align: right;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+  body {
+    padding: 15px;
+  }
+  
+  .container {
+    max-width: 100%;
+  }
+  
+  header h1 {
+    font-size: 20px;
+  }
+  
+  .controls {
+    flex-direction: column;
+  }
+  
+  button {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  
+  .matches {
+    padding: 12px;
+  }
+  
+  .match {
+    padding: 10px 8px;
+  }
+  
+  .notification {
+    max-width: 90%;
+    font-size: 13px;
+    padding: 10px 16px;
+  }
+}
+
+/* Анимация появления элементов */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.match {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Стили для скроллбара */
+.matches {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.matches::-webkit-scrollbar {
+  width: 6px;
+}
+
+.matches::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.matches::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 3px;
+}
+
+.matches::-webkit-scrollbar-thumb:hover {
+  background: #22c3a7;
+}
