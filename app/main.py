@@ -46,63 +46,63 @@ user_settings: Dict[int, Dict] = {}
 
 # --- ПРЕДОПРЕДЕЛЕННЫЕ ЛИГИ ---
 POPULAR_LEAGUES = {
-    "premier_league": {"id": 1, "name": "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Премьер-лига Англия", "country": "Англия"},
-    "la_liga": {"id": 2, "name": "🇪🇸 Ла Лига Испания", "country": "Испания"},
-    "serie_a": {"id": 3, "name": "🇮🇹 Серия А Италия", "country": "Италия"},
-    "bundesliga": {"id": 4, "name": "🇩🇪 Бундеслига Германия", "country": "Германия"},
-    "ligue_1": {"id": 5, "name": "🇫🇷 Лига 1 Франция", "country": "Франция"},
-    "rpl": {"id": 6, "name": "🇷🇺 Российская Премьер-лига", "country": "Россия"},
-    "champions_league": {"id": 7, "name": "🏆 Лига Чемпионов", "country": "Европа"},
-    "europa_league": {"id": 8, "name": "🥈 Лига Европы", "country": "Европa"}
+    "premier_league": {"id": 1, "name": "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Премьер-лига", "country": "Англия", "emoji": "🏴󠁧󠁢󠁥󠁮󠁧󠁿"},
+    "la_liga": {"id": 2, "name": "🇪🇸 Ла Лига", "country": "Испания", "emoji": "🇪🇸"},
+    "serie_a": {"id": 3, "name": "🇮🇹 Серия А", "country": "Италия", "emoji": "🇮🇹"},
+    "bundesliga": {"id": 4, "name": "🇩🇪 Бундеслига", "country": "Германия", "emoji": "🇩🇪"},
+    "ligue_1": {"id": 5, "name": "🇫🇷 Лига 1", "country": "Франция", "emoji": "🇫🇷"},
+    "rpl": {"id": 6, "name": "🇷🇺 РПЛ", "country": "Россия", "emoji": "🇷🇺"},
+    "champions_league": {"id": 7, "name": "🏆 Лига Чемпионов", "country": "Европа", "emoji": "🏆"},
+    "europa_league": {"id": 8, "name": "🥈 Лига Европы", "country": "Европa", "emoji": "🥈"}
 }
 
 # --- ДАННЫЕ ДЛЯ СТАТИСТИКИ ---
 STATS_DATA = {
     "scorers": [
-        {"name": "Криштиану Роналду", "team": "Аль-Наср", "goals": 25, "assists": 7},
-        {"name": "Лионель Месси", "team": "Интер Майами", "goals": 22, "assists": 14},
-        {"name": "Роберт Левандовский", "team": "Барселона", "goals": 20, "assists": 5},
-        {"name": "Килиан Мбаппе", "team": "ПСЖ", "goals": 19, "assists": 8},
-        {"name": "Эрлинг Холаннд", "team": "Манчестер Сити", "goals": 18, "assists": 6},
+        {"name": "Криштиану Роналду", "team": "Аль-Наср", "goals": 25, "assists": 7, "emoji": "👑"},
+        {"name": "Лионель Месси", "team": "Интер Майами", "goals": 22, "assists": 14, "emoji": "⭐"},
+        {"name": "Роберт Левандовский", "team": "Барселона", "goals": 20, "assists": 5, "emoji": "🔥"},
+        {"name": "Килиан Мбаппе", "team": "ПСЖ", "goals": 19, "assists": 8, "emoji": "⚡"},
+        {"name": "Эрлинг Холаннд", "team": "Манчестер Сити", "goals": 18, "assists": 6, "emoji": "💥"},
     ],
     "assists": [
-        {"name": "Кевин Де Брёйне", "team": "Манчестер Сити", "assists": 16, "goals": 5},
-        {"name": "Лионель Месси", "team": "Интер Майами", "assists": 14, "goals": 22},
-        {"name": "Тони Кроос", "team": "Реал Мадрид", "assists": 12, "goals": 3},
-        {"name": "Бруну Фернандеш", "team": "Манчестер Юнайтед", "assists": 11, "goals": 8},
-        {"name": "Трент Александер-Арнольд", "team": "Ливерпуль", "assists": 10, "goals": 2},
+        {"name": "Кевин Де Брёйне", "team": "Манчестер Сити", "assists": 16, "goals": 5, "emoji": "🎯"},
+        {"name": "Лионель Месси", "team": "Интер Майами", "assists": 14, "goals": 22, "emoji": "⭐"},
+        {"name": "Тони Кроос", "team": "Реал Мадрид", "assists": 12, "goals": 3, "emoji": "🎩"},
+        {"name": "Бруну Фернандеш", "team": "Манчестер Юнайтед", "assists": 11, "goals": 8, "emoji": "🔮"},
+        {"name": "Трент Александер-Арнольд", "team": "Ливерпуль", "assists": 10, "goals": 2, "emoji": "🎯"},
     ],
     "discipline": [
-        {"name": "Никола Миленкович", "team": "Фиорентина", "yellow": 12, "red": 2},
-        {"name": "Эрик Байи", "team": "Севилья", "yellow": 10, "red": 1},
-        {"name": "Жоау Канселу", "team": "Барселона", "yellow": 9, "red": 1},
-        {"name": "Казуя Ямамото", "team": "Осака", "yellow": 8, "red": 2},
-        {"name": "Алехандро Гарначо", "team": "Манчестер Юнайтед", "yellow": 8, "red": 1},
+        {"name": "Никола Миленкович", "team": "Фиорентина", "yellow": 12, "red": 2, "emoji": "💥"},
+        {"name": "Эрик Байи", "team": "Севилья", "yellow": 10, "red": 1, "emoji": "⚡"},
+        {"name": "Жоау Канселу", "team": "Барселона", "yellow": 9, "red": 1, "emoji": "🔴"},
+        {"name": "Казуя Ямамото", "team": "Осака", "yellow": 8, "red": 2, "emoji": "💢"},
+        {"name": "Алехандро Гарначо", "team": "Манчестер Юнайтед", "yellow": 8, "red": 1, "emoji": "⚡"},
     ],
     "defense": [
-        {"name": "Ян Облак", "team": "Атлетико Мадрид", "clean_sheets": 15, "saves": 87},
-        {"name": "Алиссон Беккер", "team": "Ливерпуль", "clean_sheets": 14, "saves": 92},
-        {"name": "Мануэль Нойер", "team": "Бавария", "clean_sheets": 13, "saves": 78},
-        {"name": "Тибо Куртуа", "team": "Реал Мадрид", "clean_sheets": 12, "saves": 85},
-        {"name": "Эдерсон", "team": "Манчестер Сити", "clean_sheets": 11, "saves": 67},
+        {"name": "Ян Облак", "team": "Атлетико Мадрид", "clean_sheets": 15, "saves": 87, "emoji": "🛡️"},
+        {"name": "Алиссон Беккер", "team": "Ливерпуль", "clean_sheets": 14, "saves": 92, "emoji": "🌟"},
+        {"name": "Мануэль Нойер", "team": "Бавария", "clean_sheets": 13, "saves": 78, "emoji": "🧤"},
+        {"name": "Тибо Куртуа", "team": "Реал Мадрид", "clean_sheets": 12, "saves": 85, "emoji": "⭐"},
+        {"name": "Эдерсон", "team": "Манчестер Сити", "clean_sheets": 11, "saves": 67, "emoji": "⚡"},
     ]
 }
 
-# --- ТУРНИРНЫЕ ТАБЛИЦЫ (ЗАГЛУШКИ) ---
+# --- ТУРНИРНЫЕ ТАБЛИЦЫ ---
 LEAGUE_TABLES = {
     "premier_league": [
-        {"position": 1, "team": "Арсенал", "points": 74, "games": 30},
-        {"position": 2, "team": "Манчестер Сити", "points": 73, "games": 30},
-        {"position": 3, "team": "Ливерпуль", "points": 72, "games": 30},
-        {"position": 4, "team": "Астон Вилла", "points": 63, "games": 30},
-        {"position": 5, "team": "Тоттенхэм", "points": 60, "games": 30},
+        {"position": 1, "team": "Арсенал", "points": 74, "games": 30, "form": "WWLWW"},
+        {"position": 2, "team": "Манчестер Сити", "points": 73, "games": 30, "form": "WWWDW"},
+        {"position": 3, "team": "Ливерпуль", "points": 72, "games": 30, "form": "WWLWD"},
+        {"position": 4, "team": "Астон Вилла", "points": 63, "games": 30, "form": "WLWWW"},
+        {"position": 5, "team": "Тоттенхэм", "points": 60, "games": 30, "form": "WLLWD"},
     ],
     "la_liga": [
-        {"position": 1, "team": "Реал Мадрид", "points": 78, "games": 30},
-        {"position": 2, "team": "Барселона", "points": 70, "games": 30},
-        {"position": 3, "team": "Жирона", "points": 65, "games": 30},
-        {"position": 4, "team": "Атлетико Мадрид", "points": 61, "games": 30},
-        {"position": 5, "team": "Атлетик Бильбао", "points": 56, "games": 30},
+        {"position": 1, "team": "Реал Мадрид", "points": 78, "games": 30, "form": "WWWWW"},
+        {"position": 2, "team": "Барселона", "points": 70, "games": 30, "form": "WWLWD"},
+        {"position": 3, "team": "Жирона", "points": 65, "games": 30, "form": "WLLWW"},
+        {"position": 4, "team": "Атлетико Мадрид", "points": 61, "games": 30, "form": "WLWWL"},
+        {"position": 5, "team": "Атлетик Бильбао", "points": 56, "games": 30, "form": "WWDDW"},
     ]
 }
 
@@ -146,13 +146,13 @@ def get_random_bet_match():
         random_match = random.choice(eligible_matches)
         
         bet_options = [
-            f"П1 - победа {random_match.get('homeTeam', {}).get('name', 'хозяев')}",
-            f"П2 - победа {random_match.get('awayTeam', {}).get('name', 'гостей')}",
-            "Х - ничья",
-            f"ТБ 2.5 - тотал больше 2.5 голов",
-            f"ТМ 2.5 - тотал меньше 2.5 голов",
-            f"Обе команды забьют - ДА",
-            f"Обе команды забьют - НЕТ"
+            {"type": "П1", "text": f"П1 - победа {random_match.get('homeTeam', {}).get('name', 'хозяев')}", "emoji": "🏠"},
+            {"type": "П2", "text": f"П2 - победа {random_match.get('awayTeam', {}).get('name', 'гостей')}", "emoji": "✈️"},
+            {"type": "Х", "text": "Х - ничья", "emoji": "🤝"},
+            {"type": "ТБ", "text": "ТБ 2.5 - тотал больше 2.5 голов", "emoji": "📈"},
+            {"type": "ТМ", "text": "ТМ 2.5 - тотал меньше 2.5 голов", "emoji": "📉"},
+            {"type": "ОЗ", "text": "Обе команды забьют - ДА", "emoji": "⚽⚽"},
+            {"type": "ОЗ", "text": "Обе команды забьют - НЕТ", "emoji": "🚫"}
         ]
         
         random_bet = random.choice(bet_options)
@@ -356,141 +356,284 @@ def api_internal_matches_league(league_id: int):
     except Exception as e:
         return JSONResponse(status_code=500, content={"error": str(e)})
 
+# --- УЛУЧШЕННЫЙ ВИЗУАЛ - ФУНКЦИИ ФОРМАТИРОВАНИЯ ---
+def format_match_message(match_data, is_live=False):
+    """Форматирование сообщения о матче с улучшенным визуалом"""
+    tournament = match_data.get("tournament", {})
+    league = tournament.get("name", "—")
+    
+    home_team = match_data.get("homeTeam", {})
+    away_team = match_data.get("awayTeam", {})
+    home_name = home_team.get("name", "Home")
+    away_name = away_team.get("name", "Away")
+    
+    start_timestamp = match_data.get("startTimestamp")
+    if start_timestamp:
+        start_time_utc = datetime.fromtimestamp(start_timestamp / 1000)
+        start_time_msk = start_time_utc + timedelta(hours=3)
+        time_str = start_time_msk.strftime("%H:%M МСК")
+    else:
+        time_str = "—"
+    
+    if is_live:
+        home_score = match_data.get("homeScore", {}).get("current", 0)
+        away_score = match_data.get("awayScore", {}).get("current", 0)
+        
+        # Эмодзи для статуса матча
+        status_emoji = "🔴"
+        if home_score > away_score:
+            status_emoji = "🔵"
+        elif away_score > home_score:
+            status_emoji = "🟡"
+        else:
+            status_emoji = "⚪"
+        
+        return (
+            f"{status_emoji} *LIVE: {league}*\n"
+            f"────────────────\n"
+            f"🏠 *{home_name}*   {home_score} - {away_score}   *{away_name}* ✈️\n"
+            f"⏰ *Время:* {time_str}\n"
+            f"🎯 *Статус:* Матч в процессе"
+        )
+    else:
+        # Эмодзи для времени до матча
+        time_emoji = "🕒"
+        if start_timestamp:
+            time_diff = (start_time_msk - (datetime.utcnow() + timedelta(hours=3))).total_seconds() / 60
+            if time_diff < 30:
+                time_emoji = "🔜"
+            elif time_diff < 60:
+                time_emoji = "⏳"
+        
+        return (
+            f"⚽ *{league}*\n"
+            f"────────────────\n"
+            f"🏠 *{home_name}*   vs   *{away_name}* ✈️\n"
+            f"{time_emoji} *Начало:* {time_str}"
+        )
+
+def format_stats_message(stats_type, data):
+    """Форматирование статистики с улучшенным визуалом"""
+    titles = {
+        "scorers": "🥅 Топ-5 бомбардиров",
+        "assists": "🅰️ Топ-5 ассистентов", 
+        "discipline": "🟨🟥 Статистика дисциплины",
+        "defense": "🧤 Лучшие вратари"
+    }
+    
+    text = f"*{titles.get(stats_type, 'Статистика')}*\n"
+    text += "────────────────\n"
+    
+    for i, player in enumerate(data, 1):
+        emoji = player.get('emoji', '👤')
+        if stats_type == "scorers":
+            text += f"{i}. {emoji} *{player['name']}* ({player['team']})\n   ⚽ Голы: {player['goals']} | 🎯 Пасы: {player['assists']}\n\n"
+        elif stats_type == "assists":
+            text += f"{i}. {emoji} *{player['name']}* ({player['team']})\n   🎯 Пасы: {player['assists']} | ⚽ Голы: {player['goals']}\n\n"
+        elif stats_type == "discipline":
+            text += f"{i}. {emoji} *{player['name']}* ({player['team']})\n   🟨 {player['yellow']} | 🟥 {player['red']}\n\n"
+        elif stats_type == "defense":
+            text += f"{i}. {emoji} *{player['name']}* ({player['team']})\n   🧤 Сухие матчи: {player['clean_sheets']}\n\n"
+    
+    text += f"📅 *Обновлено:* {datetime.now().strftime('%d.%m.%Y %H:%M')}"
+    return text
+
+def format_table_message(league_name, table_data):
+    """Форматирование турнирной таблицы с улучшенным визуалом"""
+    position_emojis = {1: "🥇", 2: "🥈", 3: "🥉", 4: "4️⃣", 5: "5️⃣"}
+    
+    text = f"📊 *Турнирная таблица - {league_name}*\n"
+    text += "────────────────────\n"
+    
+    for team in table_data:
+        pos = team['position']
+        emoji = position_emojis.get(pos, f"{pos}️⃣")
+        
+        # Форматирование формы команды с эмодзи
+        form_emojis = {
+            'W': '🟢',  # победа
+            'D': '🟡',  # ничья  
+            'L': '🔴'   # поражение
+        }
+        form_display = ''.join([form_emojis.get(char, '⚪') for char in team.get('form', '')])
+        
+        text += f"{emoji} *{team['team']}*\n"
+        text += f"   📊 Очки: {team['points']} | 🎮 Игры: {team['games']}\n"
+        text += f"   📈 Форма: {form_display}\n\n"
+    
+    return text
+
 # --- ОСНОВНЫЕ ОБРАБОТЧИКИ TELEGRAM ---
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
     kb = InlineKeyboardBuilder()
     
+    # Первый ряд - основные функции
     kb.button(text="📅 Ближайшие матчи", callback_data="get_matches")
     kb.button(text="📡 Live-матчи", callback_data="get_live")
+    
+    # Второй ряд - развлечения и аналитика
     kb.button(text="🎲 Рандомная ставка", callback_data="random_bet")
     kb.button(text="🏆 Выбор лиги", callback_data="select_league")
-    kb.button(text="📊 Турнирные таблицы", callback_data="tables_menu")  # ИСПРАВЛЕНО: было table_menu
+    
+    # Третий ряд - статистика
+    kb.button(text="📊 Турнирные таблицы", callback_data="tables_menu")
+    kb.button(text="📈 Статистика игроков", callback_data="stats_menu")
+    
+    # Четвертый ряд - персонализация
     kb.button(text="⭐ Избранное", callback_data="favorites_menu")
-    kb.button(text="📈 Статистика", callback_data="stats_menu")
     kb.button(text="⚙️ Настройки", callback_data="settings_menu")
+    
     kb.adjust(2, 2, 2, 2)
     
-    await message.answer(
-        "🤖 *Футбольный бот - все функции*\n\n"
-        "⚽ *Основные команды:*\n"
-        "/matches - Ближайшие матчи\n"
-        "/live - Текущие матчи\n"
-        "/bet - Рандомная ставка\n"
-        "/league - Выбор лиги\n"
-        "/table - Турнирные таблицы\n"  # ДОБАВЛЕНО
-        "/team - Поиск по команде\n\n"
-        "⭐ *Дополнительные:*\n"
-        "/favorite - Избранное\n"
-        "/notify - Уведомления\n"
-        "/stats - Статистика\n\n"
-        "Или используйте кнопки ниже:",
-        reply_markup=kb.as_markup(),
-        parse_mode="Markdown"
+    welcome_text = (
+        "⚽ *Добро пожаловать в Футбольный Бот!* ⚽\n\n"
+        "🎯 *Ваш персональный помощник в мире футбола*\n\n"
+        "✨ *Доступные функции:*\n"
+        "• 📅 Ближайшие матчи\n"  
+        "• 📡 Прямые трансляции\n"
+        "• 🎲 Случайные ставки\n"
+        "• 🏆 Матчи по лигам\n"
+        "• 📊 Турнирные таблицы\n"
+        "• 📈 Статистика игроков\n"
+        "• ⭐ Персональное избранное\n\n"
+        "👇 Выберите действие ниже или используйте команды:"
     )
+    
+    await message.answer(welcome_text, reply_markup=kb.as_markup(), parse_mode="Markdown")
 
 # --- ОБРАБОТЧИКИ КНОПОК ГЛАВНОГО МЕНЮ ---
 @dp.callback_query(lambda c: c.data == "get_matches")
 async def process_get_matches(callback: types.CallbackQuery):
-    await callback.answer()
+    await callback.answer("⏳ Загружаю матчи...")
     await cmd_matches(callback.message)
 
 @dp.callback_query(lambda c: c.data == "get_live")
 async def process_get_live(callback: types.CallbackQuery):
-    await callback.answer()
+    await callback.answer("📡 Ищу live-матчи...")
     await cmd_live(callback.message)
 
 @dp.callback_query(lambda c: c.data == "random_bet")
 async def process_random_bet(callback: types.CallbackQuery):
-    await callback.answer("🎲 Ищу новую ставку...")
+    await callback.answer("🎲 Кручу барабан...")
     await cmd_bet(callback.message)
 
 @dp.callback_query(lambda c: c.data == "select_league")
 async def process_select_league(callback: types.CallbackQuery):
-    await callback.answer()
+    await callback.answer("🏆 Выбираю лиги...")
     await cmd_league(callback.message)
 
-@dp.callback_query(lambda c: c.data == "tables_menu")  # ИСПРАВЛЕНО: было table_menu
+@dp.callback_query(lambda c: c.data == "tables_menu")
 async def process_tables_menu(callback: types.CallbackQuery):
-    await callback.answer()
+    await callback.answer("📊 Загружаю таблицы...")
     await cmd_table(callback.message)
-
-@dp.callback_query(lambda c: c.data == "favorites_menu")
-async def process_favorites_menu(callback: types.CallbackQuery):
-    await callback.answer()
-    await cmd_favorite(callback.message)
 
 @dp.callback_query(lambda c: c.data == "stats_menu")
 async def process_stats_menu(callback: types.CallbackQuery):
-    await callback.answer()
+    await callback.answer("📈 Открываю статистику...")
     await cmd_stats(callback.message)
+
+@dp.callback_query(lambda c: c.data == "favorites_menu")
+async def process_favorites_menu(callback: types.CallbackQuery):
+    await callback.answer("⭐ Ваше избранное...")
+    await cmd_favorite(callback.message)
 
 @dp.callback_query(lambda c: c.data == "settings_menu")
 async def process_settings_menu(callback: types.CallbackQuery):
-    await callback.answer()
+    await callback.answer("⚙️ Настройки...")
     await cmd_notify(callback.message)
 
 # --- КОМАНДЫ БОТА ---
 @dp.message(Command("matches"))
 async def cmd_matches(message: types.Message):
-    await message.answer("⏳ Загружаю ближайшие матчи...")
+    await message.answer("🔍 *Ищу ближайшие матчи...*", parse_mode="Markdown")
+    
     try:
         internal_url = "http://127.0.0.1:8080/api/internal/matches"
         resp = requests.get(internal_url, timeout=10)
         
         if resp.status_code != 200:
-            await message.answer("❌ Ошибка при загрузке матчей")
+            await message.answer("❌ *Не удалось загрузить матчи*", parse_mode="Markdown")
             return
             
         data = resp.json().get("data", [])
         
         if not data:
-            await message.answer("⚽ Нет матчей в ближайшие 2 часа.")
+            await message.answer(
+                "⚽ *Нет матчей в ближайшие 2 часа*\n\n"
+                "Попробуйте позже или посмотрите другие разделы!",
+                parse_mode="Markdown"
+            )
             return
-            
+        
+        await message.answer(f"📅 *Найдено матчей: {len(data)}*", parse_mode="Markdown")
+        
         for m in data[:5]:
-            await send_match_message(message, m)
+            match_text = format_match_message(m)
+            await message.answer(match_text, parse_mode="Markdown")
             
         if len(data) > 5:
-            await message.answer(f"📊 Показано 5 из {len(data)} матчей")
+            kb = InlineKeyboardBuilder()
+            kb.button(text="📋 Показать все матчи", callback_data="show_all_matches")
+            kb.button(text="🔙 Главное меню", callback_data="main_menu")
+            kb.adjust(1)
+            
+            await message.answer(
+                f"📊 *Показано 5 из {len(data)} матчей*\n"
+                f"Для просмотра всех матчей используйте кнопку ниже:",
+                reply_markup=kb.as_markup(),
+                parse_mode="Markdown"
+            )
             
     except Exception as e:
-        await message.answer("❌ Внутренняя ошибка")
+        await message.answer("❌ *Произошла ошибка при загрузке матчей*", parse_mode="Markdown")
 
 @dp.message(Command("live"))
 async def cmd_live(message: types.Message):
-    await message.answer("📡 Загружаю текущие матчи...")
+    await message.answer("🔴 *Ищу активные матчи...*", parse_mode="Markdown")
+    
     try:
         internal_url = "http://127.0.0.1:8080/api/internal/matches/live"
         resp = requests.get(internal_url, timeout=10)
         
         if resp.status_code != 200:
-            await message.answer("❌ Ошибка при загрузке live-матчей")
+            await message.answer("❌ *Не удалось загрузить live-матчи*", parse_mode="Markdown")
             return
             
         data = resp.json().get("data", [])
         
         if not data:
-            await message.answer("🔴 Сейчас нет активных матчей.")
+            await message.answer(
+                "🔴 *Сейчас нет активных матчей*\n\n"
+                "Но вы можете посмотреть:\n"
+                "• 📅 Ближайшие матчи\n"
+                "• 🎲 Случайную ставку\n"
+                "• 📊 Статистику игроков",
+                parse_mode="Markdown"
+            )
             return
-            
+        
+        await message.answer(f"🔴 *Активных матчей: {len(data)}*", parse_mode="Markdown")
+        
         for m in data[:5]:
-            await send_live_match_message(message, m)
-            
-        if len(data) > 5:
-            await message.answer(f"📊 Показано 5 из {len(data)} матчей")
+            match_text = format_match_message(m, is_live=True)
+            await message.answer(match_text, parse_mode="Markdown")
             
     except Exception as e:
-        await message.answer("❌ Внутренняя ошибка")
+        await message.answer("❌ *Произошла ошибка при загрузке live-матчей*", parse_mode="Markdown")
 
 @dp.message(Command("bet"))
 async def cmd_bet(message: types.Message):
-    await message.answer("🎲 Кручу барабан... Ищу интересный матч для ставки!")
+    await message.answer("🎰 *Кручу барабан... Ищу интересный матч для ставки!*", parse_mode="Markdown")
     
     bet_data = get_random_bet_match()
     
     if not bet_data:
-        await message.answer("❌ Не нашел подходящих матчей для ставки в ближайший час.")
+        await message.answer(
+            "❌ *Не нашел подходящих матчей для ставки в ближайший час*\n\n"
+            "💡 Попробуйте позже, когда будет больше матчей!",
+            parse_mode="Markdown"
+        )
         return
     
     match_data = bet_data["match"]
@@ -513,26 +656,36 @@ async def cmd_bet(message: types.Message):
     else:
         time_str = "—"
     
+    # Улучшенные варианты ставок
     stake_options = [
-        "💎 Рекомендуемая ставка: 2-3% от банка",
-        "💰 Можно рискнуть: 5% от банка", 
-        "🎯 Для осторожных: 1-2% от банка",
-        "⚡ Средняя ставка: 3-4% от банка"
+        "💎 *Консервативно:* 1-2% от банка",
+        "💰 *Сбалансированно:* 2-3% от банка", 
+        "🎯 *Агрессивно:* 3-5% от банка",
+        "⚡ *Максимально:* 5% от банка"
     ]
     random_stake = random.choice(stake_options)
     
-    mood_emojis = ["🔥", "💫", "🎯", "⚡", "🌟", "💎"]
-    random_mood = random.choice(mood_emojis)
+    # Эмодзи для уровня уверенности
+    if confidence >= 90:
+        confidence_emoji = "🔮"
+    elif confidence >= 80:
+        confidence_emoji = "🎯"
+    elif confidence >= 70:
+        confidence_emoji = "📊"
+    else:
+        confidence_emoji = "🎲"
     
     bet_message = (
-        f"{random_mood} *РАНДОМНАЯ СТАВКА*\n\n"
+        f"🎰 *СЛУЧАЙНАЯ СТАВКА*\n"
+        f"────────────────\n"
         f"🏆 *Лига:* {league}\n"
         f"⚽ *Матч:* {home_name} vs {away_name}\n"
         f"🕒 *Начало:* {time_str}\n\n"
-        f"💡 *Предложение:* {bet}\n"
-        f"📊 *Уверенность:* {confidence}%\n"
+        f"💡 *Рекомендация:* {bet['emoji']} {bet['text']}\n"
+        f"{confidence_emoji} *Уверенность:* {confidence}%\n"
         f"{random_stake}\n\n"
-        f"⚠️ *Важно:* Это просто случайная рекомендация!"
+        f"⚠️ *Важно:* Это просто случайная рекомендация!\n"
+        f"🎭 Азартные игры могут вызывать зависимость!"
     )
     
     kb = InlineKeyboardBuilder()
@@ -548,13 +701,14 @@ async def cmd_league(message: types.Message):
     kb = InlineKeyboardBuilder()
     
     for league_id, league_info in POPULAR_LEAGUES.items():
-        kb.button(text=league_info["name"], callback_data=f"league_{league_id}")
+        kb.button(text=f"{league_info['emoji']} {league_info['name']}", callback_data=f"league_{league_id}")
     
     kb.button(text="🔙 Главное меню", callback_data="main_menu")
     kb.adjust(2)
     
     await message.answer(
-        "🏆 *Выберите лигу:*\n\nПоказаны матчи на сегодня из выбранной лиги:",
+        "🏆 *Выберите лигу*\n\n"
+        "👇 Показаны матчи на сегодня из выбранной лиги:",
         reply_markup=kb.as_markup(),
         parse_mode="Markdown"
     )
@@ -571,7 +725,8 @@ async def cmd_table(message: types.Message):
     kb.adjust(1)
     
     await message.answer(
-        "📊 *Турнирные таблицы*\n\nВыберите лигу:",
+        "📊 *Турнирные таблицы*\n\n"
+        "👇 Выберите лигу для просмотра текущей таблицы:",
         reply_markup=kb.as_markup(),
         parse_mode="Markdown"
     )
@@ -582,14 +737,21 @@ async def cmd_team(message: types.Message):
     if len(args) < 2:
         await message.answer(
             "🔍 *Поиск матчей по команде*\n\n"
-            "Введите название команды:\n"
-            "<code>/team Реал Мадрид</code>\n\n"
-            "⚠️ *Внимание:* Функция в разработке",
-            parse_mode="HTML"
+            "💡 *Использование:*\n"
+            "`/team Реал Мадрид`\n"
+            "`/team Барселона`\n\n"
+            "🚧 *Функция в разработке*\n"
+            "Скоро вы сможете искать матчи по вашим любимым командам!",
+            parse_mode="Markdown"
         )
         return
     
-    await message.answer("🔍 Поиск по командам в разработке...")
+    await message.answer(
+        "🔍 *Поиск по командам*\n\n"
+        "🚧 *Функция в разработке*\n"
+        "Следите за обновлениями!",
+        parse_mode="Markdown"
+    )
 
 @dp.message(Command("favorite"))
 async def cmd_favorite(message: types.Message):
@@ -600,9 +762,22 @@ async def cmd_favorite(message: types.Message):
         favorites = user_favorites.get(user_id, [])
         if favorites:
             fav_text = "\n".join([f"⭐ {team}" for team in favorites])
-            await message.answer(f"⭐ *Ваши избранные команды:*\n\n{fav_text}", parse_mode="Markdown")
+            await message.answer(
+                f"⭐ *Ваши избранные команды*\n\n"
+                f"{fav_text}\n\n"
+                f"💡 Чтобы добавить команду:\n"
+                f"`/favorite Название команды`",
+                parse_mode="Markdown"
+            )
         else:
-            await message.answer("⭐ У вас нет избранных команд.")
+            await message.answer(
+                "⭐ *Избранные команды*\n\n"
+                "У вас пока нет избранных команд.\n\n"
+                "💡 *Добавить команду:*\n"
+                "`/favorite Реал Мадрид`\n"
+                "`/favorite Барселона`",
+                parse_mode="Markdown"
+            )
         return
     
     team_name = args[1]
@@ -611,7 +786,18 @@ async def cmd_favorite(message: types.Message):
     
     if team_name not in user_favorites[user_id]:
         user_favorites[user_id].append(team_name)
-        await message.answer(f"✅ Команда <b>{team_name}</b> добавлена в избранное", parse_mode="HTML")
+        await message.answer(
+            f"✅ *Команда добавлена в избранное*\n\n"
+            f"⭐ {team_name}\n\n"
+            f"Теперь вы будете получать уведомления о матчах этой команды!",
+            parse_mode="Markdown"
+        )
+    else:
+        await message.answer(
+            f"ℹ️ *Команда уже в избранном*\n\n"
+            f"⭐ {team_name}",
+            parse_mode="Markdown"
+        )
 
 @dp.message(Command("notify"))
 async def cmd_notify(message: types.Message):
@@ -622,16 +808,23 @@ async def cmd_notify(message: types.Message):
     
     if current_status:
         kb.button(text="🔕 Выключить уведомления", callback_data="disable_notifications")
-        status_text = "включены"
+        status_text = "✅ включены"
+        status_emoji = "🔔"
     else:
         kb.button(text="🔔 Включить уведомления", callback_data="enable_notifications")
-        status_text = "выключены"
+        status_text = "🔕 выключены"
+        status_emoji = "🔕"
     
     kb.button(text="🔙 Главное меню", callback_data="main_menu")
     kb.adjust(1)
     
     await message.answer(
-        f"🔔 *Уведомления*\n\nТекущий статус: {status_text}",
+        f"{status_emoji} *Управление уведомлениями*\n\n"
+        f"📊 *Текущий статус:* {status_text}\n\n"
+        f"📨 *Вы будете получать:*\n"
+        f"• Уведомления о начале матчей\n"
+        f"• Результаты избранных команд\n"
+        f"• Важные спортивные новости",
         reply_markup=kb.as_markup(),
         parse_mode="Markdown"
     )
@@ -648,7 +841,8 @@ async def cmd_stats(message: types.Message):
     kb.adjust(1)
     
     await message.answer(
-        "📈 *Статистика игроков*\n\nВыберите категорию статистики:",
+        "📈 *Статистика игроков*\n\n"
+        "👇 Выберите категорию статистики:",
         reply_markup=kb.as_markup(),
         parse_mode="Markdown"
     )
@@ -660,124 +854,125 @@ async def process_league_select(callback: types.CallbackQuery):
     league_info = POPULAR_LEAGUES.get(league_key)
     
     if not league_info:
-        await callback.answer("Лига не найдена")
+        await callback.answer("❌ Лига не найдена")
         return
     
-    await callback.answer(f"Загружаю матчи {league_info['name']}...")
+    await callback.answer(f"🔍 Загружаю матчи {league_info['name']}...")
     
     try:
         internal_url = f"http://127.0.0.1:8080/api/internal/matches/league/{league_info['id']}"
         resp = requests.get(internal_url, timeout=10)
         
         if resp.status_code != 200:
-            await callback.message.answer("❌ Ошибка при загрузке матчей лиги")
+            await callback.message.answer("❌ *Ошибка при загрузке матчей лиги*", parse_mode="Markdown")
             return
             
         data = resp.json().get("data", [])
         
         if not data:
-            await callback.message.answer(f"⚽ Нет матчей в лиге {league_info['name']} на сегодня.")
+            await callback.message.answer(
+                f"⚽ *Нет матчей в лиге {league_info['name']}*\n\n"
+                f"Попробуйте другую лигу или зайдите позже!",
+                parse_mode="Markdown"
+            )
             return
             
-        await callback.message.answer(f"🏆 *Матчи {league_info['name']}:*", parse_mode="Markdown")
+        await callback.message.answer(
+            f"🏆 *Матчи {league_info['emoji']} {league_info['name']}*\n"
+            f"📊 Найдено: {len(data)} матчей",
+            parse_mode="Markdown"
+        )
         
         for m in data[:5]:
-            await send_match_message(callback.message, m)
+            match_text = format_match_message(m)
+            await callback.message.answer(match_text, parse_mode="Markdown")
             
     except Exception as e:
-        await callback.message.answer("❌ Ошибка при загрузке матчей лиги")
+        await callback.message.answer("❌ *Ошибка при загрузке матчей лиги*", parse_mode="Markdown")
 
 # --- ОБРАБОТЧИКИ ТУРНИРНЫХ ТАБЛИЦ ---
 @dp.callback_query(lambda c: c.data.startswith("table_"))
 async def process_table_select(callback: types.CallbackQuery):
     league_key = callback.data.replace("table_", "")
     
-    if league_key == "premier_league":
-        league_name = "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Премьер-лига Англия"
-        table_data = get_league_table("premier_league")
-    elif league_key == "la_liga":
-        league_name = "🇪🇸 Ла Лига Испания"
-        table_data = get_league_table("la_liga")
-    else:
-        await callback.answer("Таблица временно недоступна")
+    league_names = {
+        "premier_league": "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Премьер-лига Англия",
+        "la_liga": "🇪🇸 Ла Лига Испания",
+        "serie_a": "🇮🇹 Серия А Италия", 
+        "bundesliga": "🇩🇪 Бундеслига Германия"
+    }
+    
+    league_name = league_names.get(league_key)
+    if not league_name:
+        await callback.answer("❌ Таблица временно недоступна")
         return
     
-    text = f"📊 *Турнирная таблица - {league_name}*\n\n"
+    table_data = get_league_table(league_key)
+    if not table_data:
+        await callback.answer("❌ Данные таблицы недоступны")
+        return
     
-    for team in table_data:
-        text += f"{team['position']}. {team['team']} - {team['points']} очков ({team['games']} игр)\n"
+    table_text = format_table_message(league_name, table_data)
     
     kb = InlineKeyboardBuilder()
     kb.button(text="📊 Другие таблицы", callback_data="tables_menu")
     kb.button(text="🔙 Главное меню", callback_data="main_menu")
     kb.adjust(1)
     
-    await callback.message.answer(text, reply_markup=kb.as_markup(), parse_mode="Markdown")
+    await callback.message.answer(table_text, reply_markup=kb.as_markup(), parse_mode="Markdown")
     await callback.answer()
 
 # --- ОБРАБОТЧИКИ СТАТИСТИКИ ---
 @dp.callback_query(lambda c: c.data == "stats_scorers")
 async def process_stats_scorers(callback: types.CallbackQuery):
     scorers = get_top_scorers(5)
-    
-    text = "🥅 *Топ-5 бомбардиров*\n\n"
-    for i, player in enumerate(scorers, 1):
-        text += f"{i}. {player['name']} ({player['team']}) - {player['goals']} голов\n"
+    stats_text = format_stats_message("scorers", scorers)
     
     kb = InlineKeyboardBuilder()
     kb.button(text="📈 Другие статистики", callback_data="stats_menu")
     kb.button(text="🔙 Главное меню", callback_data="main_menu")
     kb.adjust(1)
     
-    await callback.message.answer(text, reply_markup=kb.as_markup(), parse_mode="Markdown")
+    await callback.message.answer(stats_text, reply_markup=kb.as_markup(), parse_mode="Markdown")
     await callback.answer()
 
 @dp.callback_query(lambda c: c.data == "stats_assists")
 async def process_stats_assists(callback: types.CallbackQuery):
     assists = get_top_assists(5)
-    
-    text = "🅰️ *Топ-5 ассистентов*\n\n"
-    for i, player in enumerate(assists, 1):
-        text += f"{i}. {player['name']} ({player['team']}) - {player['assists']} передач\n"
+    stats_text = format_stats_message("assists", assists)
     
     kb = InlineKeyboardBuilder()
     kb.button(text="📈 Другие статистики", callback_data="stats_menu")
     kb.button(text="🔙 Главное меню", callback_data="main_menu")
     kb.adjust(1)
     
-    await callback.message.answer(text, reply_markup=kb.as_markup(), parse_mode="Markdown")
+    await callback.message.answer(stats_text, reply_markup=kb.as_markup(), parse_mode="Markdown")
     await callback.answer()
 
 @dp.callback_query(lambda c: c.data == "stats_discipline")
 async def process_stats_discipline(callback: types.CallbackQuery):
     discipline = get_discipline_stats(5)
-    
-    text = "🟨🟥 *Статистика дисциплины*\n\n"
-    for i, player in enumerate(discipline, 1):
-        text += f"{i}. {player['name']} ({player['team']}) - {player['yellow']}🟨 {player['red']}🟥\n"
+    stats_text = format_stats_message("discipline", discipline)
     
     kb = InlineKeyboardBuilder()
     kb.button(text="📈 Другие статистики", callback_data="stats_menu")
     kb.button(text="🔙 Главное меню", callback_data="main_menu")
     kb.adjust(1)
     
-    await callback.message.answer(text, reply_markup=kb.as_markup(), parse_mode="Markdown")
+    await callback.message.answer(stats_text, reply_markup=kb.as_markup(), parse_mode="Markdown")
     await callback.answer()
 
 @dp.callback_query(lambda c: c.data == "stats_defense")
 async def process_stats_defense(callback: types.CallbackQuery):
     defense = get_defense_stats(5)
-    
-    text = "🧤 *Лучшие вратари*\n\n"
-    for i, player in enumerate(defense, 1):
-        text += f"{i}. {player['name']} ({player['team']}) - {player['clean_sheets']} сухих матчей\n"
+    stats_text = format_stats_message("defense", defense)
     
     kb = InlineKeyboardBuilder()
     kb.button(text="📈 Другие статистики", callback_data="stats_menu")
     kb.button(text="🔙 Главное меню", callback_data="main_menu")
     kb.adjust(1)
     
-    await callback.message.answer(text, reply_markup=kb.as_markup(), parse_mode="Markdown")
+    await callback.message.answer(stats_text, reply_markup=kb.as_markup(), parse_mode="Markdown")
     await callback.answer()
 
 # --- ОБРАБОТЧИКИ НАСТРОЕК ---
@@ -786,55 +981,31 @@ async def process_enable_notifications(callback: types.CallbackQuery):
     user_id = callback.from_user.id
     user_notifications[user_id] = True
     await callback.answer("✅ Уведомления включены")
-    await cmd_notify(callback.message)
+    await callback.message.answer(
+        "🔔 *Уведомления включены!*\n\n"
+        "Теперь вы будете получать уведомления о:\n"
+        "• 📅 Начале матчей\n"
+        "• ⭐ Матчах избранных команд\n"
+        "• 🎯 Важных спортивных событиях",
+        parse_mode="Markdown"
+    )
 
 @dp.callback_query(lambda c: c.data == "disable_notifications")
 async def process_disable_notifications(callback: types.CallbackQuery):
     user_id = callback.from_user.id
     user_notifications[user_id] = False
     await callback.answer("🔕 Уведомления выключены")
-    await cmd_notify(callback.message)
+    await callback.message.answer(
+        "🔕 *Уведомления выключены*\n\n"
+        "Вы больше не будете получать уведомления.\n"
+        "Включить их можно в любое время в настройках.",
+        parse_mode="Markdown"
+    )
 
 @dp.callback_query(lambda c: c.data == "main_menu")
 async def process_main_menu(callback: types.CallbackQuery):
-    await callback.answer()
+    await callback.answer("🏠 Возвращаюсь в главное меню...")
     await cmd_start(callback.message)
-
-# --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
-async def send_match_message(message, match_data):
-    tournament = match_data.get("tournament", {})
-    league = tournament.get("name", "—")
-    
-    home_team = match_data.get("homeTeam", {})
-    away_team = match_data.get("awayTeam", {})
-    home_name = home_team.get("name", "Home")
-    away_name = away_team.get("name", "Away")
-    
-    start_timestamp = match_data.get("startTimestamp")
-    if start_timestamp:
-        start_time_utc = datetime.fromtimestamp(start_timestamp / 1000)
-        start_time_msk = start_time_utc + timedelta(hours=3)
-        time_str = start_time_msk.strftime("%H:%M МСК")
-    else:
-        time_str = "—"
-    
-    text = f"🏆 <b>{league}</b>\n⚽ {home_name} vs {away_name}\n🕒 {time_str}"
-    await message.answer(text, parse_mode="HTML")
-
-async def send_live_match_message(message, match_data):
-    tournament = match_data.get("tournament", {})
-    league = tournament.get("name", "—")
-    
-    home_team = match_data.get("homeTeam", {})
-    away_team = match_data.get("awayTeam", {})
-    home_name = home_team.get("name", "Home")
-    away_name = away_team.get("name", "Away")
-    
-    home_score = match_data.get("homeScore", {}).get("current", 0)
-    away_score = match_data.get("awayScore", {}).get("current", 0)
-    
-    text = f"🔴 <b>LIVE: {league}</b>\n⚽ {home_name} {home_score} - {away_score} {away_name}\n🕒 Матч в процессе"
-    await message.answer(text, parse_mode="HTML")
 
 # --- ЗАПУСК БОТА И API ---
 def run_bot():
@@ -844,7 +1015,7 @@ def run_api():
     uvicorn.run(app, host="0.0.0.0", port=8080)
 
 if __name__ == "__main__":
-    log.info("🚀 Запуск бота с полным набором обработчиков кнопок")
+    log.info("🚀 Запуск бота с улучшенным визуалом")
     
     t_api = threading.Thread(target=run_api, daemon=True)
     t_api.start()
