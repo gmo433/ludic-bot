@@ -47,4 +47,4 @@ spec:
                   name: bot-secrets
                   key: API_SPORT_KEY
             - name: WEBAPP_URL
-              value: ""  # optional: set to your public URL if available
+              value: ""  # Оставьте пустым пока не настроен домен
