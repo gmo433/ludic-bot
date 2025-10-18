@@ -8,7 +8,7 @@ import hashlib
 import json
 
 import requests
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, JSONResponse
 import uvicorn
 
@@ -16,27 +16,30 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-# --- ENVIRONMENT VARIABLES ---
+# --- ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ ---
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 API_SPORT_KEY = os.getenv("API_SPORT_KEY")
 WEBAPP_URL = os.getenv("WEBAPP_URL", "").strip()
 
 if not TELEGRAM_BOT_TOKEN:
-    raise RuntimeError("TELEGRAM_BOT_TOKEN is required")
+    raise RuntimeError("TELEGRAM_BOT_TOKEN обязателен")
 if not API_SPORT_KEY:
-    raise RuntimeError("API_SPORT_KEY is required")
+    raise RuntimeError("API_SPORT_KEY обязателен")
 
-# --- LOGGING ---
-logging.basicConfig(level=logging.INFO)
+# --- НАСТРОЙКА ЛОГИРОВАНИЯ ---
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 log = logging.getLogger(__name__)
 
 bot = Bot(token=TELEGRAM_BOT_TOKEN)
 dp = Dispatcher()
 app = FastAPI()
 
-# --- INITDATA VALIDATION ---
+# --- ПРОВЕРКА INITDATA ---
 def validate_init_data(init_data: str) -> bool:
-    """Validate Telegram Web App initData"""
+    """Проверка Telegram Web App initData"""
     try:
         pairs = init_data.split('&')
         data_dict = {}
@@ -68,10 +71,10 @@ def validate_init_data(init_data: str) -> bool:
         
         return calculated_hash == hash_value
     except Exception as e:
-        log.error(f"Error validating initData: {e}")
+        log.error(f"Ошибка проверки initData: {e}")
         return False
 
-# --- WEB APP STATIC FILES ---
+# --- СТАТИЧЕСКИЕ ФАЙЛЫ WEB APP ---
 @app.get("/")
 def index():
     return FileResponse("app/webapp/index.html")
@@ -84,44 +87,9 @@ def style():
 def app_js():
     return FileResponse("app/webapp/app.js")
 
-# --- API ENDPOINTS ---
-@app.get("/api/matches")
-def api_matches(request: Request):
-    """Endpoint for Mini App with initData validation"""
-    try:
-        # Get initData from header
-        init_data = request.headers.get("X-Telegram-Init-Data")
-        
-        if not init_data:
-            return JSONResponse(
-                status_code=401,
-                content={"error": "initData required"}
-            )
-        
-        # Validate initData
-        if not validate_init_data(init_data):
-            return JSONResponse(
-                status_code=401,
-                content={"error": "Invalid initData"}
-            )
-        
-        return get_matches_data()
-        
-    except Exception as e:
-        log.exception("Error fetching matches")
-        return JSONResponse(status_code=500, content={"error": str(e)})
-
-@app.get("/api/internal/matches")
-def api_internal_matches():
-    """Internal endpoint for bot commands without initData validation"""
-    try:
-        return get_matches_data()
-    except Exception as e:
-        log.exception("Error fetching matches")
-        return JSONResponse(status_code=500, content={"error": str(e)})
-
+# --- ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ДАННЫХ О МАТЧАХ ---
 def get_matches_data():
-    """Common function to fetch matches data with proper API key header"""
+    """Общая функция для получения данных о матчах"""
     try:
         now = datetime.utcnow()
         to = now + timedelta(hours=2)
@@ -131,48 +99,129 @@ def get_matches_data():
             "timezone": "UTC"
         }
         
-        # ✅ ПРАВИЛЬНАЯ ПЕРЕДАЧА КЛЮЧА В ЗАГОЛОВКЕ
         headers = {
-            "X-API-KEY": API_SPORT_KEY  # Ключ передается в заголовке
+            "X-API-KEY": API_SPORT_KEY
         }
         
         url = "https://app.api-sport.ru/api/football/matches"
         
-        log.info(f"Making request to: {url}")
-        log.info(f"With headers: { {k: '***' if k == 'X-API-KEY' else v for k, v in headers.items()} }")
-        log.info(f"With params: {params}")
+        log.info(f"🔍 Отправляем запрос к API: {url}")
+        log.info(f"📋 Параметры запроса: {params}")
         
         resp = requests.get(url, headers=headers, params=params, timeout=10)
         
-        log.info(f"Response status: {resp.status_code}")
+        # ДЕТАЛЬНОЕ ЛОГИРОВАНИЕ ОТВЕТА
+        log.info(f"📡 Статус ответа: {resp.status_code}")
+        log.info(f"📋 Заголовки ответа: {dict(resp.headers)}")
         
-        # Если ошибка 401 - проблема с ключом
+        # Логируем первые 500 символов ответа
+        response_preview = resp.text[:500] + "..." if len(resp.text) > 500 else resp.text
+        log.info(f"📄 Содержимое ответа: {response_preview}")
+        
+        # Проверяем, что ответ не пустой
+        if not resp.text.strip():
+            log.error("❌ Получен пустой ответ от API")
+            return JSONResponse(
+                status_code=500,
+                content={"error": "Пустой ответ от API спортивных данных"}
+            )
+        
+        # Проверяем статус код
         if resp.status_code == 401:
+            log.error("❌ Ошибка 401: Неверный API ключ")
             return JSONResponse(
                 status_code=401,
-                content={"error": "API key invalid or unauthorized"}
+                content={"error": "Неверный API ключ"}
             )
-        
-        resp.raise_for_status()
-        data = resp.json()
-        
-        log.info(f"Received {len(data.get('data', []))} matches")
-        
-        return JSONResponse(content=data)
-        
-    except requests.exceptions.HTTPError as e:
-        if e.response.status_code == 401:
-            log.error("API key is invalid or expired")
+        elif resp.status_code == 403:
+            log.error("❌ Ошибка 403: Доступ запрещен")
             return JSONResponse(
-                status_code=401,
-                content={"error": "API key authentication failed"}
+                status_code=403,
+                content={"error": "Доступ запрещен. Проверьте лимиты API"}
             )
-        raise e
+        elif resp.status_code == 404:
+            log.error("❌ Ошибка 404: API endpoint не найден")
+            return JSONResponse(
+                status_code=404,
+                content={"error": "API endpoint не найден"}
+            )
+        elif resp.status_code != 200:
+            log.error(f"❌ Ошибка HTTP {resp.status_code}")
+            return JSONResponse(
+                status_code=resp.status_code,
+                content={"error": f"Ошибка API: {resp.status_code}"}
+            )
+        
+        # Пытаемся разобрать JSON
+        try:
+            data = resp.json()
+            matches_count = len(data.get('data', []))
+            log.info(f"✅ Успешно получено {matches_count} матчей")
+            return JSONResponse(content=data)
+        except json.JSONDecodeError as e:
+            log.error(f"❌ Ошибка разбора JSON: {e}")
+            log.error(f"📄 Полное содержимое ответа: {resp.text}")
+            return JSONResponse(
+                status_code=500,
+                content={"error": "Некорректный JSON от API"}
+            )
+            
+    except requests.exceptions.Timeout:
+        log.error("⏰ Таймаут запроса к API")
+        return JSONResponse(
+            status_code=504,
+            content={"error": "Таймаут при запросе к API"}
+        )
+    except requests.exceptions.ConnectionError:
+        log.error("🔌 Ошибка подключения к API")
+        return JSONResponse(
+            status_code=503,
+            content={"error": "Ошибка подключения к API"}
+        )
     except Exception as e:
-        log.exception("Error in get_matches_data")
-        raise e
+        log.exception("💥 Неожиданная ошибка в get_matches_data")
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Внутренняя ошибка: {str(e)}"}
+        )
 
-# --- TELEGRAM HANDLERS ---
+# --- API ENDPOINTS ---
+@app.get("/api/matches")
+def api_matches(request: Request):
+    """Endpoint для Mini App с проверкой initData"""
+    try:
+        # Получаем initData из заголовка
+        init_data = request.headers.get("X-Telegram-Init-Data")
+        
+        if not init_data:
+            return JSONResponse(
+                status_code=401,
+                content={"error": "initData обязателен"}
+            )
+        
+        # Проверяем initData
+        if not validate_init_data(init_data):
+            return JSONResponse(
+                status_code=401,
+                content={"error": "Неверный initData"}
+            )
+        
+        return get_matches_data()
+        
+    except Exception as e:
+        log.exception("Ошибка в api_matches")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+@app.get("/api/internal/matches")
+def api_internal_matches():
+    """Внутренний endpoint для команд бота без проверки initData"""
+    try:
+        return get_matches_data()
+    except Exception as e:
+        log.exception("Ошибка в api_internal_matches")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+# --- ОБРАБОТЧИКИ TELEGRAM ---
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
     kb = InlineKeyboardBuilder()
@@ -199,11 +248,28 @@ async def cmd_matches(message: types.Message):
     try:
         # Используем внутренний endpoint
         internal_url = "http://127.0.0.1:8080/api/internal/matches"
+        log.info(f"🔄 Внутренний запрос к: {internal_url}")
+        
         resp = requests.get(internal_url, timeout=10)
         
         if resp.status_code != 200:
-            error_data = resp.json()
-            await message.answer(f"❌ Ошибка API: {error_data.get('error', 'Unknown error')}")
+            try:
+                error_data = resp.json()
+                error_msg = error_data.get('error', 'Неизвестная ошибка')
+            except:
+                error_msg = f"HTTP ошибка {resp.status_code}"
+            
+            # Более понятные сообщения об ошибках
+            if "API ключ" in error_msg or "401" in error_msg:
+                await message.answer("❌ Проблема с API ключем. Проверьте настройки.")
+            elif "Пустой ответ" in error_msg:
+                await message.answer("❌ API не вернуло данные. Попробуйте позже.")
+            elif "таймаут" in error_msg.lower() or "timeout" in error_msg.lower():
+                await message.answer("❌ Таймаут при запросе к API.")
+            elif "подключени" in error_msg.lower() or "connection" in error_msg.lower():
+                await message.answer("❌ Ошибка подключения к API.")
+            else:
+                await message.answer(f"❌ Ошибка API: {error_msg}")
             return
             
         data = resp.json().get("data", [])
@@ -212,6 +278,7 @@ async def cmd_matches(message: types.Message):
             await message.answer("⚽ Нет матчей в ближайшие 2 часа.")
             return
             
+        # Отправляем первые 5 матчей (ограничение Telegram)
         for m in data[:5]:
             league = m.get("league", {}).get("name", "—")
             home = m.get("teams", {}).get("home", {}).get("name", "Home")
@@ -224,8 +291,8 @@ async def cmd_matches(message: types.Message):
             await message.answer(f"📊 Показано 5 из {len(data)} матчей")
             
     except Exception as e:
-        log.error(f"Error in cmd_matches: {e}")
-        await message.answer(f"❌ Ошибка при получении матчей: {e}")
+        log.error(f"💥 Ошибка в cmd_matches: {e}")
+        await message.answer("❌ Внутренняя ошибка при получении матчей")
 
 @dp.callback_query(lambda c: c.data == "get_matches")
 async def process_callback(callback: types.CallbackQuery):
@@ -242,21 +309,30 @@ async def process_help(callback: types.CallbackQuery):
         "📊 *Функциональность:*\n"
         "- Просмотр футбольных матчей\n"
         "- Ближайшие 2 часа\n"
-        "- Разные лиги и турниры",
+        "- Разные лиги и турниры\n\n"
+        "🛠 *Поддержка:*\n"
+        "Для настройки Mini App обратитесь к администратору.",
         parse_mode="Markdown"
     )
     await callback.answer()
 
-# --- THREADS: BOT + API ---
+# --- ЗАПУСК БОТА И API ---
 def run_bot():
+    """Запуск бота"""
     asyncio.run(dp.start_polling(bot))
 
 def run_api():
+    """Запуск FastAPI"""
     uvicorn.run(app, host="0.0.0.0", port=8080)
 
 if __name__ == "__main__":
-    log.info("Starting bot with proper API key headers")
+    log.info("🚀 Запуск бота с улучшенной обработкой ошибок")
+    log.info(f"🔑 WEBAPP_URL: {WEBAPP_URL}")
+    
+    # Запускаем API в отдельном потоке
     t_api = threading.Thread(target=run_api, daemon=True)
     t_api.start()
-    log.info("FastAPI started on port 8080")
+    log.info("🌐 FastAPI запущен на порту 8080")
+    
+    # Запускаем бота
     run_bot()
