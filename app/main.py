@@ -19,7 +19,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 # --- ENVIRONMENT VARIABLES ---
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 API_SPORT_KEY = os.getenv("API_SPORT_KEY")
-WEBAPP_URL = os.getenv("WEBAPP_URL", "")
+WEBAPP_URL = os.getenv("WEBAPP_URL", "").strip()
 
 if not TELEGRAM_BOT_TOKEN:
     raise RuntimeError("TELEGRAM_BOT_TOKEN is required")
@@ -38,7 +38,6 @@ app = FastAPI()
 def validate_init_data(init_data: str) -> bool:
     """
     Validate Telegram Web App initData
-    Docs: https://core.telegram.org/bots/webapps#validating-data-received-via-the-web-app
     """
     try:
         # Parse initData
@@ -158,48 +157,48 @@ def api_matches(request: Request):
         log.exception("Error fetching matches")
         return JSONResponse(status_code=500, content={"error": str(e)})
 
-@app.get("/api/user")
-def api_user(request: Request):
-    """Get user data from initData"""
-    init_data = request.headers.get("X-Telegram-Init-Data")
-    
-    if not init_data:
-        return JSONResponse(
-            status_code=401,
-            content={"error": "initData required"}
-        )
-    
-    if not validate_init_data(init_data):
-        return JSONResponse(
-            status_code=401,
-            content={"error": "Invalid initData"}
-        )
-    
-    user_data = parse_init_data(init_data)
-    return JSONResponse(content={"user": user_data})
-
 # --- TELEGRAM HANDLERS ---
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
     kb = InlineKeyboardBuilder()
     
-    if WEBAPP_URL:
+    # Проверяем доступность Web App URL
+    if WEBAPP_URL and WEBAPP_URL not in ["", "https://<YOUR_PUBLIC_URL>/", "https://ваш-реальный-домен.com"]:
+        # Показываем кнопку Web App
         kb.button(
             text="⚽ Открыть мини-приложение",
             web_app=types.WebAppInfo(url=WEBAPP_URL)
         )
-    
-    await message.answer(
-        "Привет! 👋\nНажми кнопку ниже, чтобы открыть мини-приложение с ближайшими матчами:",
-        reply_markup=kb.as_markup()
-    )
+        
+        await message.answer(
+            "Привет! 👋\nНажми кнопку ниже, чтобы открыть мини-приложение с ближайшими матчами:",
+            reply_markup=kb.as_markup()
+        )
+    else:
+        # Показываем альтернативные кнопки если Web App недоступен
+        kb.button(text="📅 Получить матчи", callback_data="get_matches")
+        kb.button(text="🔄 Обновить", callback_data="get_matches")
+        kb.button(text="ℹ️ Помощь", callback_data="help")
+        
+        kb.adjust(2, 1)  # 2 кнопки в первом ряду, 1 во втором
+        
+        await message.answer(
+            "Привет! 👋\nЯ бот для просмотра футбольных матчей.\n\n"
+            "⚽ *Доступные команды:*\n"
+            "/matches - Показать ближайшие матчи\n"
+            "/start - Перезапустить бота\n\n"
+            "❌ *Mini App временно недоступен*\n"
+            "Используйте кнопки ниже:",
+            reply_markup=kb.as_markup(),
+            parse_mode="Markdown"
+        )
 
 @dp.message(Command("matches"))
 async def cmd_matches(message: types.Message):
     await message.answer("⏳ Загружаю ближайшие матчи...")
     try:
         # For bot commands, we don't need initData validation
-        internal_url = os.getenv("WEBAPP_API_INTERNAL", "http://127.0.0.1:8080/api/matches")
+        internal_url = "http://127.0.0.1:8080/api/matches"
         resp = requests.get(internal_url, timeout=10)
         resp.raise_for_status()
         data = resp.json().get("data", [])
@@ -208,7 +207,8 @@ async def cmd_matches(message: types.Message):
             await message.answer("⚽ Нет матчей в ближайшие 2 часа.")
             return
             
-        for m in data:
+        # Отправляем первые 5 матчей (ограничение Telegram)
+        for m in data[:5]:
             league = m.get("league", {}).get("name", "—")
             home = m.get("teams", {}).get("home", {}).get("name", "Home")
             away = m.get("teams", {}).get("away", {}).get("name", "Away")
@@ -216,8 +216,33 @@ async def cmd_matches(message: types.Message):
             text = f"🏆 <b>{league}</b>\n⚽ {home} vs {away}\n🕒 {time}"
             await message.answer(text, parse_mode="HTML")
             
+        if len(data) > 5:
+            await message.answer(f"📊 Показано 5 из {len(data)} матчей")
+            
     except Exception as e:
         await message.answer(f"❌ Ошибка при получении матчей: {e}")
+
+@dp.callback_query(lambda c: c.data == "get_matches")
+async def process_callback(callback: types.CallbackQuery):
+    await cmd_matches(callback.message)
+    await callback.answer()
+
+@dp.callback_query(lambda c: c.data == "help")
+async def process_help(callback: types.CallbackQuery):
+    await callback.message.answer(
+        "🤖 *Ludic Bot Help*\n\n"
+        "⚽ *Команды:*\n"
+        "/start - Начать работу\n"
+        "/matches - Показать ближайшие матчи\n\n"
+        "🛠 *Поддержка:*\n"
+        "Для настройки Mini App обратитесь к администратору.\n\n"
+        "📊 *Функциональность:*\n"
+        "- Просмотр футбольных матчей\n"
+        "- Ближайшие 2 часа\n"
+        "- Разные лиги и турниры",
+        parse_mode="Markdown"
+    )
+    await callback.answer()
 
 # --- THREADS: BOT + API ---
 def run_bot():
@@ -227,6 +252,7 @@ def run_api():
     uvicorn.run(app, host="0.0.0.0", port=8080)
 
 if __name__ == "__main__":
+    log.info(f"WEBAPP_URL: {WEBAPP_URL}")  # Для отладки
     t_api = threading.Thread(target=run_api, daemon=True)
     t_api.start()
     log.info("FastAPI started on port 8080")
