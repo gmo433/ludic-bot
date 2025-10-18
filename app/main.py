@@ -56,6 +56,58 @@ POPULAR_LEAGUES = {
     "europa_league": {"id": 8, "name": "🥈 Лига Европы", "country": "Европa"}
 }
 
+# --- ДАННЫЕ ДЛЯ СТАТИСТИКИ (ЗАГЛУШКИ) ---
+STATS_DATA = {
+    "scorers": [
+        {"name": "Криштиану Роналду", "team": "Аль-Наср", "goals": 25, "assists": 7},
+        {"name": "Лионель Месси", "team": "Интер Майами", "goals": 22, "assists": 14},
+        {"name": "Роберт Левандовский", "team": "Барселона", "goals": 20, "assists": 5},
+        {"name": "Килиан Мбаппе", "team": "ПСЖ", "goals": 19, "assists": 8},
+        {"name": "Эрлинг Холаннд", "team": "Манчестер Сити", "goals": 18, "assists": 6},
+        {"name": "Винисиус Жуниор", "team": "Реал Мадрид", "goals": 16, "assists": 9},
+        {"name": "Гарри Кейн", "team": "Бавария", "goals": 15, "assists": 7},
+        {"name": "Виктор Осимхен", "team": "Наполи", "goals": 14, "assists": 4},
+        {"name": "Лаутаро Мартинес", "team": "Интер", "goals": 13, "assists": 5},
+        {"name": "Мохаммед Салах", "team": "Ливерпуль", "goals": 12, "assists": 8}
+    ],
+    "assists": [
+        {"name": "Кевин Де Брёйне", "team": "Манчестер Сити", "assists": 16, "goals": 5},
+        {"name": "Лионель Месси", "team": "Интер Майами", "assists": 14, "goals": 22},
+        {"name": "Тони Кроос", "team": "Реал Мадрид", "assists": 12, "goals": 3},
+        {"name": "Бруну Фернандеш", "team": "Манчестер Юнайтед", "assists": 11, "goals": 8},
+        {"name": "Трент Александер-Арнольд", "team": "Ливерпуль", "assists": 10, "goals": 2},
+        {"name": "Лерой Сане", "team": "Бавария", "assists": 9, "goals": 7},
+        {"name": "Винисиус Жуниор", "team": "Реал Мадрид", "assists": 9, "goals": 16},
+        {"name": "Букайо Сака", "team": "Арсенал", "assists": 8, "goals": 10},
+        {"name": "Флориан Вирц", "team": "Байер 04", "assists": 8, "goals": 6},
+        {"name": "Мохаммед Салах", "team": "Ливерпуль", "assists": 8, "goals": 12}
+    ],
+    "discipline": [
+        {"name": "Никола Миленкович", "team": "Фиорентина", "yellow": 12, "red": 2},
+        {"name": "Эрик Байи", "team": "Севилья", "yellow": 10, "red": 1},
+        {"name": "Жоау Канселу", "team": "Барселона", "yellow": 9, "red": 1},
+        {"name": "Казуя Ямамото", "team": "Осака", "yellow": 8, "red": 2},
+        {"name": "Алехандро Гарначо", "team": "Манчестер Юнайтед", "yellow": 8, "red": 1},
+        {"name": "Родриго Де Пол", "team": "Атлетико Мадрид", "yellow": 7, "red": 1},
+        {"name": "Эдинсон Кавани", "team": "Бока Хуниорс", "yellow": 7, "red": 1},
+        {"name": "Пауло Дибала", "team": "Рома", "yellow": 6, "red": 0},
+        {"name": "Неймар", "team": "Аль-Хиляль", "yellow": 6, "red": 0},
+        {"name": "Серхио Рамос", "team": "Севилья", "yellow": 5, "red": 1}
+    ],
+    "defense": [
+        {"name": "Ян Облак", "team": "Атлетико Мадрид", "clean_sheets": 15, "saves": 87},
+        {"name": "Алиссон Беккер", "team": "Ливерпуль", "clean_sheets": 14, "saves": 92},
+        {"name": "Мануэль Нойер", "team": "Бавария", "clean_sheets": 13, "saves": 78},
+        {"name": "Тибо Куртуа", "team": "Реал Мадрид", "clean_sheets": 12, "saves": 85},
+        {"name": "Эдерсон", "team": "Манчестер Сити", "clean_sheets": 11, "saves": 67},
+        {"name": "Майк Меньян", "team": "Милан", "clean_sheets": 10, "saves": 74},
+        {"name": "Гильермо Очоа", "team": "Салернитана", "clean_sheets": 9, "saves": 103},
+        {"name": "Давид де Хеа", "team": "без клуба", "clean_sheets": 8, "saves": 71},
+        {"name": "Марк-Андре тер Штеген", "team": "Барселона", "clean_sheets": 8, "saves": 69},
+        {"name": "Войцех Щенсный", "team": "Ювентус", "clean_sheets": 7, "saves": 65}
+    ]
+}
+
 # --- ФУНКЦИЯ ДЛЯ РАНДОМНОЙ СТАВКИ ---
 def get_random_bet_match():
     """Получение случайного матча для ставки в течение часа"""
@@ -123,6 +175,23 @@ def get_random_bet_match():
         log.error(f"Ошибка в get_random_bet_match: {e}")
         return None
 
+# --- ФУНКЦИИ ДЛЯ СТАТИСТИКИ ---
+def get_top_scorers(limit=5):
+    """Получить лучших бомбардиров"""
+    return STATS_DATA["scorers"][:limit]
+
+def get_top_assists(limit=5):
+    """Получить лучших ассистентов"""
+    return STATS_DATA["assists"][:limit]
+
+def get_discipline_stats(limit=5):
+    """Получить статистику дисциплины"""
+    return STATS_DATA["discipline"][:limit]
+
+def get_defense_stats(limit=5):
+    """Получить статистику защиты"""
+    return STATS_DATA["defense"][:limit]
+
 # --- ПРОВЕРКА INITDATA ---
 def validate_init_data(init_data: str) -> bool:
     """Проверка Telegram Web App initData"""
@@ -172,6 +241,47 @@ def style():
 @app.get("/app.js")
 def app_js():
     return FileResponse("app/webapp/app.js")
+
+# --- API ДЛЯ СТАТИСТИКИ ---
+@app.get("/api/stats/scorers")
+def api_stats_scorers():
+    """API для получения лучших бомбардиров"""
+    try:
+        scorers = get_top_scorers(10)
+        return JSONResponse(content={"data": scorers})
+    except Exception as e:
+        log.error(f"Ошибка в api_stats_scorers: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+@app.get("/api/stats/assists")
+def api_stats_assists():
+    """API для получения лучших ассистентов"""
+    try:
+        assists = get_top_assists(10)
+        return JSONResponse(content={"data": assists})
+    except Exception as e:
+        log.error(f"Ошибка в api_stats_assists: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+@app.get("/api/stats/discipline")
+def api_stats_discipline():
+    """API для получения статистики дисциплины"""
+    try:
+        discipline = get_discipline_stats(10)
+        return JSONResponse(content={"data": discipline})
+    except Exception as e:
+        log.error(f"Ошибка в api_stats_discipline: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
+@app.get("/api/stats/defense")
+def api_stats_defense():
+    """API для получения статистики защиты"""
+    try:
+        defense = get_defense_stats(10)
+        return JSONResponse(content={"data": defense})
+    except Exception as e:
+        log.error(f"Ошибка в api_stats_defense: {e}")
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
 # --- РАСШИРЕННАЯ ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ ДАННЫХ О МАТЧАХ ---
 def get_matches_data_extended(date=None, status=None, tournament_id=None, team_id=None):
@@ -559,16 +669,89 @@ async def cmd_stats(message: types.Message):
     kb.button(text="🥅 Лучшие бомбардиры", callback_data="stats_scorers")
     kb.button(text="🅰️ Лучшие ассистенты", callback_data="stats_assists")
     kb.button(text="🟨🟥 Дисциплина", callback_data="stats_discipline")
-    kb.button(text="🔙 Назад", callback_data="main_menu")
+    kb.button(text="🧤 Лучшие вратари", callback_data="stats_defense")
+    kb.button(text="🔙 Главное меню", callback_data="main_menu")
     kb.adjust(1)
     
     await message.answer(
-        "📈 *Статистика*\n\n"
-        "Выберите тип статистики:\n\n"
-        "⚠️ *Внимание:* Функция в разработке",
+        "📈 *Статистика игроков*\n\n"
+        "Выберите категорию статистики:",
         reply_markup=kb.as_markup(),
         parse_mode="Markdown"
     )
+
+# --- ОБРАБОТЧИКИ СТАТИСТИКИ ---
+@dp.callback_query(lambda c: c.data == "stats_scorers")
+async def process_stats_scorers(callback: types.CallbackQuery):
+    scorers = get_top_scorers(10)
+    
+    text = "🥅 *Топ-10 бомбардиров*\n\n"
+    for i, player in enumerate(scorers, 1):
+        text += f"{i}. {player['name']} ({player['team']}) - {player['goals']} голов\n"
+    
+    text += f"\n📅 Обновлено: {datetime.now().strftime('%d.%m.%Y')}"
+    
+    kb = InlineKeyboardBuilder()
+    kb.button(text="📈 Другие статистики", callback_data="stats_menu")
+    kb.button(text="🔙 Главное меню", callback_data="main_menu")
+    kb.adjust(1)
+    
+    await callback.message.answer(text, reply_markup=kb.as_markup(), parse_mode="Markdown")
+    await callback.answer()
+
+@dp.callback_query(lambda c: c.data == "stats_assists")
+async def process_stats_assists(callback: types.CallbackQuery):
+    assists = get_top_assists(10)
+    
+    text = "🅰️ *Топ-10 ассистентов*\n\n"
+    for i, player in enumerate(assists, 1):
+        text += f"{i}. {player['name']} ({player['team']}) - {player['assists']} передач\n"
+    
+    text += f"\n📅 Обновлено: {datetime.now().strftime('%d.%m.%Y')}"
+    
+    kb = InlineKeyboardBuilder()
+    kb.button(text="📈 Другие статистики", callback_data="stats_menu")
+    kb.button(text="🔙 Главное меню", callback_data="main_menu")
+    kb.adjust(1)
+    
+    await callback.message.answer(text, reply_markup=kb.as_markup(), parse_mode="Markdown")
+    await callback.answer()
+
+@dp.callback_query(lambda c: c.data == "stats_discipline")
+async def process_stats_discipline(callback: types.CallbackQuery):
+    discipline = get_discipline_stats(10)
+    
+    text = "🟨🟥 *Статистика дисциплины*\n\n"
+    for i, player in enumerate(discipline, 1):
+        text += f"{i}. {player['name']} ({player['team']}) - {player['yellow']}🟨 {player['red']}🟥\n"
+    
+    text += f"\n📅 Обновлено: {datetime.now().strftime('%d.%m.%Y')}"
+    
+    kb = InlineKeyboardBuilder()
+    kb.button(text="📈 Другие статистики", callback_data="stats_menu")
+    kb.button(text="🔙 Главное меню", callback_data="main_menu")
+    kb.adjust(1)
+    
+    await callback.message.answer(text, reply_markup=kb.as_markup(), parse_mode="Markdown")
+    await callback.answer()
+
+@dp.callback_query(lambda c: c.data == "stats_defense")
+async def process_stats_defense(callback: types.CallbackQuery):
+    defense = get_defense_stats(10)
+    
+    text = "🧤 *Лучшие вратари (сухие матчи)*\n\n"
+    for i, player in enumerate(defense, 1):
+        text += f"{i}. {player['name']} ({player['team']}) - {player['clean_sheets']} сухих матчей\n"
+    
+    text += f"\n📅 Обновлено: {datetime.now().strftime('%d.%m.%Y')}"
+    
+    kb = InlineKeyboardBuilder()
+    kb.button(text="📈 Другие статистики", callback_data="stats_menu")
+    kb.button(text="🔙 Главное меню", callback_data="main_menu")
+    kb.adjust(1)
+    
+    await callback.message.answer(text, reply_markup=kb.as_markup(), parse_mode="Markdown")
+    await callback.answer()
 
 # --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
 async def send_match_message(message, match_data):
@@ -707,7 +890,7 @@ def run_api():
     uvicorn.run(app, host="0.0.0.0", port=8080)
 
 if __name__ == "__main__":
-    log.info("🚀 Запуск бота с расширенными функциями + рандомные ставки")
+    log.info("🚀 Запуск бота с полной статистикой")
     
     # Запускаем API в отдельном потоке
     t_api = threading.Thread(target=run_api, daemon=True)
