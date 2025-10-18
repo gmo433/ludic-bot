@@ -94,32 +94,21 @@ def get_matches_data():
         # Получаем сегодняшнюю дату в правильном формате
         today = datetime.utcnow().strftime("%Y-%m-%d")
         
-        # ✅ ПРАВИЛЬНЫЕ ПАРАМЕТРЫ СОГЛАСНО ДОКУМЕНТАЦИИ
         params = {
-            "date": today  # Дата в формате YYYY-MM-DD
+            "date": today
         }
         
-        # ✅ ПРАВИЛЬНЫЕ ЗАГОЛОВКИ СОГЛАСНО ДОКУМЕНТАЦИИ
         headers = {
-            "Authorization": API_SPORT_KEY  # Ключ передается в заголовке Authorization
+            "Authorization": API_SPORT_KEY
         }
         
-        # ✅ ПРАВИЛЬНЫЙ URL СОГЛАСНО ДОКУМЕНТАЦИИ
         url = "https://api.api-sport.ru/v1/football/matches"
         
         log.info(f"🔍 Отправляем запрос к API: {url}")
-        log.info(f"📋 Параметры запроса: {params}")
-        log.info(f"📋 Заголовки запроса: Authorization: ***")
         
         resp = requests.get(url, headers=headers, params=params, timeout=10)
         
-        # ДЕТАЛЬНОЕ ЛОГИРОВАНИЕ ОТВЕТА
         log.info(f"📡 Статус ответа: {resp.status_code}")
-        log.info(f"📋 Заголовки ответа: {dict(resp.headers)}")
-        
-        # Логируем первые 500 символов ответа
-        response_preview = resp.text[:500] + "..." if len(resp.text) > 500 else resp.text
-        log.info(f"📄 Содержимое ответа: {response_preview}")
         
         # Проверяем, что ответ не пустой
         if not resp.text.strip():
@@ -158,23 +147,27 @@ def get_matches_data():
         # Пытаемся разобрать JSON
         try:
             data = resp.json()
-            
-            # ✅ ПРАВИЛЬНАЯ СТРУКТУРА ДАННЫХ СОГЛАСНО ДОКУМЕНТАЦИИ
             matches = data.get("matches", [])
             total_matches = data.get("totalMatches", 0)
             
             log.info(f"✅ Успешно получено {total_matches} матчей")
             
-            # Фильтруем матчи на ближайшие 2 часа
-            now = datetime.utcnow()
-            two_hours_later = now + timedelta(hours=2)
+            # ✅ ФИЛЬТРАЦИЯ ПО МОСКОВСКОМУ ВРЕМЕНИ (UTC+3)
+            now_utc = datetime.utcnow()
+            # Текущее время в Москве = UTC + 3 часа
+            now_msk = now_utc + timedelta(hours=3)
+            two_hours_later_msk = now_msk + timedelta(hours=2)
             
             filtered_matches = []
             for match in matches:
                 start_timestamp = match.get("startTimestamp")
                 if start_timestamp:
-                    start_time = datetime.fromtimestamp(start_timestamp / 1000)
-                    if now <= start_time <= two_hours_later:
+                    start_time_utc = datetime.fromtimestamp(start_timestamp / 1000)
+                    # Конвертируем в московское время для фильтрации
+                    start_time_msk = start_time_utc + timedelta(hours=3)
+                    
+                    # Фильтруем матчи, которые начнутся в ближайшие 2 часа по МСК
+                    if now_msk <= start_time_msk <= two_hours_later_msk:
                         filtered_matches.append(match)
             
             log.info(f"📊 После фильтрации осталось {len(filtered_matches)} матчей")
@@ -315,11 +308,13 @@ async def cmd_matches(message: types.Message):
             home_name = home_team.get("name", "Home")
             away_name = away_team.get("name", "Away")
             
-            # Конвертируем timestamp в читаемое время
+            # ✅ КОНВЕРТАЦИЯ В МОСКОВСКОЕ ВРЕМЯ (UTC+3)
             start_timestamp = m.get("startTimestamp")
             if start_timestamp:
-                start_time = datetime.fromtimestamp(start_timestamp / 1000)
-                time_str = start_time.strftime("%H:%M")
+                start_time_utc = datetime.fromtimestamp(start_timestamp / 1000)
+                # Добавляем 3 часа для московского времени
+                start_time_msk = start_time_utc + timedelta(hours=3)
+                time_str = start_time_msk.strftime("%H:%M МСК")
             else:
                 time_str = "—"
             
@@ -347,7 +342,7 @@ async def process_help(callback: types.CallbackQuery):
         "/matches - Показать ближайшие матчи\n\n"
         "📊 *Функциональность:*\n"
         "- Просмотр футбольных матчей\n"
-        "- Ближайшие 2 часа\n"
+        "- Ближайшие 2 часа (по московскому времени)\n"
         "- Разные лиги и турниры\n\n"
         "🛠 *Поддержка:*\n"
         "Для настройки Mini App обратитесь к администратору.",
@@ -365,7 +360,7 @@ def run_api():
     uvicorn.run(app, host="0.0.0.0", port=8080)
 
 if __name__ == "__main__":
-    log.info("🚀 Запуск бота с исправленным API согласно документации")
+    log.info("🚀 Запуск бота с московским временем")
     log.info(f"🔑 WEBAPP_URL: {WEBAPP_URL}")
     
     # Запускаем API в отдельном потоке
