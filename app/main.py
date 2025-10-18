@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import hmac
 import hashlib
 import json
+import random
 from typing import Dict, List, Optional
 
 import requests
@@ -54,6 +55,73 @@ POPULAR_LEAGUES = {
     "champions_league": {"id": 7, "name": "🏆 Лига Чемпионов", "country": "Европа"},
     "europa_league": {"id": 8, "name": "🥈 Лига Европы", "country": "Европa"}
 }
+
+# --- ФУНКЦИЯ ДЛЯ РАНДОМНОЙ СТАВКИ ---
+def get_random_bet_match():
+    """Получение случайного матча для ставки в течение часа"""
+    try:
+        # Получаем матчи на сегодня
+        today = datetime.utcnow().strftime("%Y-%m-%d")
+        params = {"date": today}
+        headers = {"Authorization": API_SPORT_KEY}
+        
+        url = "https://api.api-sport.ru/v1/football/matches"
+        resp = requests.get(url, headers=headers, params=params, timeout=10)
+        
+        if resp.status_code != 200:
+            return None
+            
+        data = resp.json()
+        matches = data.get("matches", [])
+        
+        if not matches:
+            return None
+        
+        # Текущее время в МСК
+        now_utc = datetime.utcnow()
+        now_msk = now_utc + timedelta(hours=3)
+        one_hour_later_msk = now_msk + timedelta(hours=1)
+        
+        # Фильтруем матчи в течение часа
+        eligible_matches = []
+        for match in matches:
+            start_timestamp = match.get("startTimestamp")
+            if start_timestamp:
+                start_time_utc = datetime.fromtimestamp(start_timestamp / 1000)
+                start_time_msk = start_time_utc + timedelta(hours=3)
+                
+                # Берем матчи, которые начнутся в течение часа
+                if now_msk <= start_time_msk <= one_hour_later_msk:
+                    eligible_matches.append(match)
+        
+        if not eligible_matches:
+            return None
+        
+        # Выбираем случайный матч
+        random_match = random.choice(eligible_matches)
+        
+        # Генерируем случайную ставку
+        bet_options = [
+            f"П1 - победа {random_match.get('homeTeam', {}).get('name', 'хозяев')}",
+            f"П2 - победа {random_match.get('awayTeam', {}).get('name', 'гостей')}",
+            "Х - ничья",
+            f"ТБ 2.5 - тотал больше 2.5 голов",
+            f"ТМ 2.5 - тотал меньше 2.5 голов",
+            f"Обе команды забьют - ДА",
+            f"Обе команды забьют - НЕТ"
+        ]
+        
+        random_bet = random.choice(bet_options)
+        
+        return {
+            "match": random_match,
+            "bet": random_bet,
+            "confidence": random.randint(65, 95)  # "уверенность" в процентах
+        }
+        
+    except Exception as e:
+        log.error(f"Ошибка в get_random_bet_match: {e}")
+        return None
 
 # --- ПРОВЕРКА INITDATA ---
 def validate_init_data(init_data: str) -> bool:
@@ -226,17 +294,19 @@ async def cmd_start(message: types.Message):
     
     kb.button(text="📅 Ближайшие матчи", callback_data="get_matches")
     kb.button(text="📡 Live-матчи", callback_data="get_live")
+    kb.button(text="🎲 Рандомная ставка", callback_data="random_bet")
     kb.button(text="🏆 Выбор лиги", callback_data="select_league")
     kb.button(text="⭐ Избранное", callback_data="favorites_menu")
     kb.button(text="📊 Статистика", callback_data="stats_menu")
     kb.button(text="⚙️ Настройки", callback_data="settings_menu")
-    kb.adjust(2, 2, 2)
+    kb.adjust(2, 2, 2, 1)
     
     await message.answer(
-        "🤖 *Футбольный бот лудик - все функции*\n\n"
+        "🤖 *Футбольный бот - все функции*\n\n"
         "⚽ *Основные команды:*\n"
         "/matches - Ближайшие матчи\n"
         "/live - Текущие матчи\n"
+        "/bet - Рандомная ставка\n"
         "/league - Выбор лиги\n"
         "/team - Поиск по команде\n\n"
         "⭐ *Дополнительные:*\n"
@@ -303,6 +373,75 @@ async def cmd_live(message: types.Message):
         log.error(f"Ошибка в cmd_live: {e}")
         await message.answer("❌ Внутренняя ошибка")
 
+@dp.message(Command("bet"))
+async def cmd_bet(message: types.Message):
+    """Рандомная ставка на матч в течение часа"""
+    await message.answer("🎲 Кручу барабан... Ищу интересный матч для ставки!")
+    
+    bet_data = get_random_bet_match()
+    
+    if not bet_data:
+        await message.answer(
+            "❌ К сожалению, не нашел подходящих матчей для ставки в ближайший час.\n"
+            "Попробуйте позже, когда будет больше матчей!"
+        )
+        return
+    
+    match_data = bet_data["match"]
+    bet = bet_data["bet"]
+    confidence = bet_data["confidence"]
+    
+    # Формируем информацию о матче
+    tournament = match_data.get("tournament", {})
+    league = tournament.get("name", "—")
+    
+    home_team = match_data.get("homeTeam", {})
+    away_team = match_data.get("awayTeam", {})
+    home_name = home_team.get("name", "Home")
+    away_name = away_team.get("name", "Away")
+    
+    start_timestamp = match_data.get("startTimestamp")
+    if start_timestamp:
+        start_time_utc = datetime.fromtimestamp(start_timestamp / 1000)
+        start_time_msk = start_time_utc + timedelta(hours=3)
+        time_str = start_time_msk.strftime("%H:%M МСК")
+    else:
+        time_str = "—"
+    
+    # Случайный совет по размеру ставки
+    stake_options = [
+        "💎 Рекомендуемая ставка: 2-3% от банка",
+        "💰 Можно рискнуть: 5% от банка", 
+        "🎯 Для осторожных: 1-2% от банка",
+        "⚡ Средняя ставка: 3-4% от банка"
+    ]
+    random_stake = random.choice(stake_options)
+    
+    # Случайный эмодзи для настроения
+    mood_emojis = ["🔥", "💫", "🎯", "⚡", "🌟", "💎"]
+    random_mood = random.choice(mood_emojis)
+    
+    bet_message = (
+        f"{random_mood} *РАНДОМНАЯ СТАВКА*\n\n"
+        f"🏆 *Лига:* {league}\n"
+        f"⚽ *Матч:* {home_name} vs {away_name}\n"
+        f"🕒 *Начало:* {time_str}\n\n"
+        f"💡 *Предложение:* {bet}\n"
+        f"📊 *Уверенность:* {confidence}%\n"
+        f"{random_stake}\n\n"
+        f"⚠️ *Важно:* Это просто случайная рекомендация!\n"
+        f"Не забывайте о responsible gambling!"
+    )
+    
+    # Добавляем кнопки для действий
+    kb = InlineKeyboardBuilder()
+    kb.button(text="🎲 Новая случайная ставка", callback_data="random_bet")
+    kb.button(text="📅 Все матчи", callback_data="get_matches")
+    kb.button(text="🔙 Главное меню", callback_data="main_menu")
+    kb.adjust(1)
+    
+    await message.answer(bet_message, reply_markup=kb.as_markup(), parse_mode="Markdown")
+
 @dp.message(Command("league"))
 async def cmd_league(message: types.Message):
     kb = InlineKeyboardBuilder()
@@ -351,7 +490,7 @@ async def cmd_favorite(message: types.Message):
         else:
             await message.answer(
                 "⭐ *Избранные команды*\n\n"
-                "У вас нет избранных команд.\n"
+                "У вас нет избранных команды.\n"
                 "Добавьте команду:\n"
                 "<code>/favorite Реал Мадрид</code>",
                 parse_mode="HTML"
@@ -480,6 +619,11 @@ async def process_get_live(callback: types.CallbackQuery):
     await callback.answer()
     await cmd_live(callback.message)
 
+@dp.callback_query(lambda c: c.data == "random_bet")
+async def process_random_bet(callback: types.CallbackQuery):
+    await callback.answer("🎲 Ищу новую ставку...")
+    await cmd_bet(callback.message)
+
 @dp.callback_query(lambda c: c.data.startswith("league_"))
 async def process_league_select(callback: types.CallbackQuery):
     league_key = callback.data.replace("league_", "")
@@ -563,7 +707,7 @@ def run_api():
     uvicorn.run(app, host="0.0.0.0", port=8080)
 
 if __name__ == "__main__":
-    log.info("🚀 Запуск бота с расширенными функциями")
+    log.info("🚀 Запуск бота с расширенными функциями + рандомные ставки")
     
     # Запускаем API в отдельном потоке
     t_api = threading.Thread(target=run_api, daemon=True)
