@@ -17,8 +17,6 @@ import uvicorn
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from aiogram.types import BotCommand, BotCommandScopeDefault, BotCommandScopeAllGroupChats
-from aiogram.enums import ChatType
 
 # --- ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ ---
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
@@ -39,34 +37,6 @@ log = logging.getLogger(__name__)
 
 bot = Bot(token=TELEGRAM_BOT_TOKEN)
 dp = Dispatcher()
-
-# --- НАСТРОЙКА МЕНЮ БОТА ---
-async def set_bot_commands():
-    """Установка команд меню бота"""
-    commands = [
-        BotCommand(command="start", description="🚀 Запустить бота"),
-        BotCommand(command="matches", description="📅 Ближайшие матчи"),
-        BotCommand(command="live", description="📡 Live-матчи"),
-        BotCommand(command="bet", description="🎲 Случайная ставка"),
-        BotCommand(command="league", description="🏆 Выбор лиги"),
-        BotCommand(command="stats", description="📈 Статистика игроков"),
-        BotCommand(command="table", description="📊 Турнирные таблицы"),
-        BotCommand(command="favorite", description="⭐ Избранное"),
-        BotCommand(command="notify", description="🔔 Уведомления"),
-        BotCommand(command="menu", description="📱 Главное меню")
-    ]
-    await bot.set_my_commands(commands, scope=BotCommandScopeDefault())
-
-async def set_group_commands():
-    """Установка команд для групп"""
-    commands = [
-        BotCommand(command="start", description="🚀 Запустить бота"),
-        BotCommand(command="matches", description="📅 Ближайшие матчи"),
-        BotCommand(command="bet", description="🎲 Случайная ставка"),
-        BotCommand(command="menu", description="📱 Показать меню")
-    ]
-    await bot.set_my_commands(commands, scope=BotCommandScopeAllGroupChats())
-
 app = FastAPI()
 
 # --- ХРАНИЛИЩА ДАННЫХ ---
@@ -496,14 +466,6 @@ def format_table_message(league_name, table_data):
 # --- ОСНОВНЫЕ ОБРАБОТЧИКИ TELEGRAM ---
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
-    # Проверяем тип чата
-    if message.chat.type in [ChatType.GROUP, ChatType.SUPERGROUP]:
-        await cmd_start_group(message)
-    else:
-        await cmd_start_private(message)
-
-async def cmd_start_private(message: types.Message):
-    """Обработчик команды /start в личных сообщениях"""
     kb = InlineKeyboardBuilder()
     
     # Первый ряд - основные функции
@@ -539,45 +501,6 @@ async def cmd_start_private(message: types.Message):
     )
     
     await message.answer(welcome_text, reply_markup=kb.as_markup(), parse_mode="Markdown")
-
-async def cmd_start_group(message: types.Message):
-    """Обработчик команды /start в группах"""
-    kb = InlineKeyboardBuilder()
-    kb.button(text="🚀 Запустить бота", url=f"https://t.me/{(await bot.get_me()).username}?start=start")
-    
-    welcome_text = (
-        "⚽ *Футбольный Бот Лудик* ⚽\n\n"
-        "🎯 *Ваш персональный помощник в мире футбола*\n\n"
-        "✨ *Доступные функции:*\n"
-        "• 📅 Ближайшие матчи\n"  
-        "• 📡 Прямые трансляции\n"
-        "• 🎲 Случайные ставки\n"
-        "• 🏆 Матчи по лигам\n"
-        "• 📊 Турнирные таблицы\n"
-        "• 📈 Статистика игроков\n\n"
-        "👇 Нажмите кнопку ниже чтобы начать:"
-    )
-    
-    await message.answer(welcome_text, reply_markup=kb.as_markup(), parse_mode="Markdown")
-
-@dp.message(Command("menu"))
-async def cmd_menu(message: types.Message):
-    """Показывает кнопку меню в группе"""
-    if message.chat.type in [ChatType.GROUP, ChatType.SUPERGROUP]:
-        kb = InlineKeyboardBuilder()
-        kb.button(text="⚽ Открыть футбольный бот", url=f"https://t.me/{(await bot.get_me()).username}?start=group")
-        kb.button(text="📅 Ближайшие матчи", callback_data="get_matches")
-        kb.button(text="🎲 Случайная ставка", callback_data="random_bet")
-        kb.adjust(1, 2)
-        
-        await message.answer(
-            "🎯 *Футбольный Бот - Быстрый доступ*\n\n"
-            "Выберите действие:",
-            reply_markup=kb.as_markup(),
-            parse_mode="Markdown"
-        )
-    else:
-        await cmd_start_private(message)
 
 # --- ОБРАБОТЧИКИ КНОПОК ГЛАВНОГО МЕНЮ ---
 @dp.callback_query(lambda c: c.data == "get_matches")
@@ -1085,22 +1008,17 @@ async def process_main_menu(callback: types.CallbackQuery):
     await cmd_start(callback.message)
 
 # --- ЗАПУСК БОТА И API ---
+def run_bot():
+    asyncio.run(dp.start_polling(bot))
+
 def run_api():
     uvicorn.run(app, host="0.0.0.0", port=8080)
 
-async def main():
-    # Настройка команд бота
-    await set_bot_commands()
-    await set_group_commands()
+if __name__ == "__main__":
+    log.info("🚀 Запуск бота с улучшенным визуалом")
     
-    # Запуск API в отдельном потоке
     t_api = threading.Thread(target=run_api, daemon=True)
     t_api.start()
     log.info("🌐 FastAPI запущен на порту 8080")
     
-    # Запуск бота
-    log.info("🤖 Бот запускается...")
-    await dp.start_polling(bot)
-
-if __name__ == "__main__":
-    asyncio.run(main())
+    run_bot()
