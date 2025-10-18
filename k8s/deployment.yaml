@@ -1,8 +1,3 @@
-# Полностью удаляем и пересоздаем deployment
-kubectl delete deployment ludic-bot
-
-# Применяем обновленный deployment
-kubectl apply -f - <<EOF
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -52,5 +47,4 @@ spec:
                   name: bot-secrets
                   key: API_SPORT_KEY
             - name: WEBAPP_URL
-              value: ""
-EOF
+              value: ""  # Оставьте пустым пока не настроен домен
